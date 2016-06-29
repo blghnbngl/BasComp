@@ -7,7 +7,7 @@ Basic Computer Behavioral Description
 
 -At times T0, T1 and T2 (which are determined by the sequence counter) I directly followed Uluc Hoca's lecture notes. I didn't write the later ASM steps and the interrupt cycle.
 
--For the Decoder module I used dataflow modelling. In the main module I used behavioral modelling.
+-Both for the and main module and the decoder, I used behavioral modelling.
 
 -There are two differences between this code and the Basic Computer we saw in the class:
 
