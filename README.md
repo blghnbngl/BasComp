@@ -5,7 +5,7 @@ Basic Computer Behavioral Description
 
 -I thought about expanding the data width from 16 to 32, but decided not to do that because that would create complications about places of adress, op codes, etc. in a memory cell. But if we want, doing this change would take little time. 
 
-- At times T0, T1 and T2 (which are determined by the sequence counter) I directly followed Uluc Hoca's lecture notes. I didn't write the later ASM steps and the interrupt cycle.
+-At times T0, T1 and T2 (which are determined by the sequence counter) I directly followed Uluc Hoca's lecture notes. I didn't write the later ASM steps and the interrupt cycle.
 
 -For the Decoder module I used dataflow modelling. In the main module I used behavioral modelling.
 
