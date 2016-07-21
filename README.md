@@ -1,7 +1,7 @@
 # bascompsemibehavioral
 Basic Computer Semi Behavioral Description
 
--This is incomplete, but I put it for you to see before we talk to Uluc Hoca. Many of the modules are likely to change.
+-This is incomplete, but I put it for you to see before we talk to Uluc Hoca. Some modules and wires are likely to change.
 
 -This is semibehavioral, because inside working of modules is behavioral but the connections between them are done with dataflow modelling.
 
@@ -11,13 +11,13 @@ Basic Computer Semi Behavioral Description
 
 -As I said, this is incomplete. Below are some of the incomplete points and possible problems:
 
-1) I didn't write the input output register operations, probably I will write them tonight.
+1) Above the main module, there should be a module called board. This module deals with physical input/outputs and also slowing of the FPGA's clock.
 
-2) Above the main module, there should be a module called board. This module deals with physical input/outputs and also slowing of the FPGA's clock.
+2) I'm not sure whether the timing of the always blocks be correct. Some take posedge clk as input, sone take * as input, etc.
 
-3) I'm not sure whether the timing of the always blocks be correct. Some take posedge clk as input, sone take * as input, etc.
+3) Start, interrupt, halt are a bit problematic.
 
-4) Start, interrupt, halt are a bit problematic.
+4) Input output serial transfer is very problematic and I do not know how to exactly do them.
 
 I'm sure some more problems are likely to occur, but the main structure is solid, I guess.
 
