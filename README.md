@@ -13,7 +13,7 @@ Basic Computer Semi Behavioral Description
 
 1) Above the main module, there should be a module called board. This module deals with physical input/outputs and also slowing of the FPGA's clock.
 
-2) I'm not sure whether the timing of the always blocks be correct. Some take posedge clk as input, sone take * as input, etc.
+2) I'm not sure whether the timing of the always blocks would be correct. Some take posedge clk as input, sone take * as input, etc.
 
 3) Start, interrupt, halt are a bit problematic.
 
