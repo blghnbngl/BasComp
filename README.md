@@ -22,5 +22,5 @@ Basic Computer Semi Behavioral Description
 I'm sure some more problems are likely to occur, but the main structure is solid, I guess.
 
 UPDATE 1 (DATE: 25.07.2016, 01:39) (By Bilgehan): I have made several simple updates.
-a) Earlier, I did not have the time to write all the wire definitions in the main module. I completed them so all the wire definitions required in the main module should be in place.
-b) A few simple mistakes sticked to my eye so I corrected them, and also added a few more comments.
+a) Earlier, I did not have the time to write all the wire definitions in the main module. I completed them so all the wire definitions required in the main module should be in place now.
+b) A few simple mistakes in various modules sticked to my eye so I corrected them, and also added a few more comments.
