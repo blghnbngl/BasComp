@@ -1,22 +1,26 @@
-# bascompbehavioral
-Basic Computer Behavioral Description
+# bascompsemibehavioral
+Basic Computer Semi Behavioral Description
 
--This description is written in behavioral modelling mode. It consists of a single module. One reason is that I did not see an immediate need to create helper module, another is it is really confusing to use modules in behavioral modelling.
+-This is incomplete, but I put it for you to see before we talk to Uluc Hoca. Some modules and wires are likely to change.
 
--I thought about expanding the data width from 16 to 32, but decided not to do that because that would create complications about places of adress, op codes, etc. in a memory cell. But if we want, doing this change would take little time. 
+-This is semibehavioral, because inside working of modules is behavioral but the connections between them are done with dataflow modelling.
 
--For all instructions, I directly followed Uluc Hoca's lecture notes.
+- There are some differences compared to the project that Enes started. First, in the Enes' project, all the necessary modules were directly connecting to each other (if I understood correctly). Rather, I did it with a bus as we saw it in the class. For this, I created a module called buschooser. This module is controlled by control module and chooses who can speak to bus at a given time. Also, all the necessary modules take their input from the bus, when the load signal comes whatever is in bus gets loaded. Secondly, I changed most of the wire names but if you want it to be in Enes' way I can switch them back.
 
--IMPORTANT: There are two differences between this code and the Basic Computer we saw in the class:
+- The real thing happens in control module. What's in there is similar to all-behavioral module I wrote before. The difference is that this time control module does not do any assignments itself, but send the necessary signals to outer modules. If you want to understand what this semi behavioral is all about, it is enough for you to look just at the control module. 
 
-1)I divided the memory into two parts. One is instructions memory, which should hold the programs written by the user. The other is data memory, which would be the place the programs hold the necessary data values. This division may not be necessary, and if wanted it may be eliminated. Actually, I sepearated these two but then followed our lecture notes. InstrcutionsMemory acted like the only memory and I never used the DataMemory in the code even though I defined it.
+-As I said, this is incomplete. Below are some of the incomplete points and possible problems:
 
-2)I created a display register that would be connected to the screen of FPGA. This register is exclusively used for shoving values in the screen. Accumulator could be used for this function too, but there may be cases that you do not want to show what's in the accumulator directly, but rather you want to have an intermaediate buffer between.
+1) Above the main module, there should be a module called board. This module deals with physical input/outputs and also slowing of the FPGA's clock.
 
--IMPORTANT: Even though many things are done, code needs 3 things to be totally complete:
+2) I'm not sure whether the timing of the always blocks would be correct. Some take posedge clk as input, sone take * as input, etc.
 
-1) I did not write parts related to START and INTERRUPT signals. These should be completed.
+3) Start, interrupt, halt are a bit problematic.
 
-2) We should write the code for connecting our input-output signals to the FPGA's physical components.
+4) Input output serial transfer is very problematic and I do not know how to exactly do them.
 
-3) Finally, we should write a testbench to check whether this behavioral model is correct.
+I'm sure some more problems are likely to occur, but the main structure is solid, I guess.
+
+UPDATE 1 (DATE: 25.07.2016, 01:39) (By Bilgehan): I have made several simple updates.
+a) Earlier, I did not have the time to write all the wire definitions in the main module. I completed them so all the wire definitions required in the main module should be in place now.
+b) A few simple mistakes in various modules sticked to my eye so I corrected them, and also added a few more comments.
