@@ -15,7 +15,7 @@ module memory(
     input read,
     input write,
     input [15:0] indata,
-    output [15:0] outdata
+    output reg [15:0] outdata
     );
 
 reg [15:0] memorydata [0:4095];
