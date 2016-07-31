@@ -23,10 +23,10 @@ module alu_unit(
     input [15:0] dr_outdata,
     input e_outdata,
     input [7:0] inpr_outdata,
-	 input [3:0] alu_code,
-    output [15:0] alu_outdata,
-    output e_indata,
-	 output ff_en
+    input [3:0] alu_code,
+    output reg [15:0] alu_outdata,
+    output reg e_indata,
+	 output reg ff_en
     );
 	 
 reg [16:0] temp_alu;
