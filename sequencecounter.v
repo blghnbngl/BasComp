@@ -15,7 +15,7 @@ module sequencecounter(
     output reg [3:0] sequence
     );
 
-reg [3:0] sequence;
+
 initial
 	begin
 		sequence<=4'b0000;
