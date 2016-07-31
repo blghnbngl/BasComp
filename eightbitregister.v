@@ -32,7 +32,7 @@ reg [7:0] datasaved;
 always @(posedge clk)
 	begin
 		if (load==1 & inc==0 & clr==0)
-				datasaved<=indata[7:0];
+				datasaved<=in_data[7:0];
 		else if (load==0 & inc==1 & clr==0)
 			$display("Erronous command on input-output register");
 		else if (load==0 & inc==0 & clr==1)
