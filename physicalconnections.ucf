@@ -1,0 +1,43 @@
+# Pin assignment for LEDs
+#NET "ld<7>" LOC = "g1" ; 
+#NET "ld<6>" LOC = "p4" ; 
+#NET "ld<5>" LOC = "n4" ; 
+#NET "ld<4>" LOC = "n5" ; 
+#NET "ld<3>" LOC = "p6" ; 
+NET "interrupted" LOC = "p7" ; 
+NET "busy" LOC = "m11" ; 
+NET "ready" LOC = "m5" ; 
+ 
+# Pin assignment for slide switches
+//NET "sw<7>" LOC = "n3"; 
+//NET "sw<6>" LOC = "e2"; 
+//NET "sw<5>" LOC = "f3"; 
+//NET "sw<4>" LOC = "g3"; 
+//NET "sw<3>" LOC = "b4"; 
+//NET "sw<2>" LOC = "k3"; 
+//NET "sw<1>" LOC = "l3"; 
+//NET "sw<0>" LOC = "p11"; 
+ 
+# Pin assignment for pushbutton switches
+//NET "btn<3>" LOC = "a7"; 
+NET "reset" LOC = "m4"; 			//Here, I decide the buttons for my inputs: reset, interrupt and start.
+NET "interrupt" LOC = "c11"; 
+NET "start" LOC = "g12"; 
+ 
+# Pin assignment for 7-segment displays
+# NET "a_to_g<6>"  LOC = "l14"  ;
+#NET "a_to_g<5>"  LOC = "h12"  ;
+#NET "a_to_g<4>"  LOC = "n14"  ;
+#NET "a_to_g<3>"  LOC = "n11"  ;
+#NET "a_to_g<2>"  LOC = "p12"  ;
+#NET "a_to_g<1>"  LOC = "l13"  ;
+#NET "a_to_g<0>"  LOC = "m12"  ;
+#NET "dp"  LOC = "n13"  ;
+ 
+#NET "an<3>" LOC = "k14"; 
+#NET "an<2>" LOC = "m13"; 
+#NET "an<1>" LOC = "j12"; 
+#NET "an<0>" LOC = "f12"; 
+ 
+# Pin assignment for clock
+NET "fpgaclock" LOC = "b8"; 					//Here, I take the FPGA clock as an input.
