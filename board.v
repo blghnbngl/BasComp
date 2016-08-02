@@ -21,14 +21,12 @@ module board(
     output reg interrupted
     );
 
-reg clockworker;						// When this FF becomes 0 myclcok stops, when this becomes 1 myclock works.
-reg clockslower;						//This and the counter below are to slow the FPGA's clock
-reg [20:0] fpgaclock_counter;		
-reg myclock;				// That's the clock that goes to the main module
+reg clockworker;			// When this FF becomes 0 myclcok stops, when this becomes 1 myclock works.
+reg [20:0] fpgaclock_counter;		//This counter is used to slow the FPGA's clock
+reg myclock;				// That's the clock that goes in the main module
 wire halted;				//This comes from main module as an out-signal.
 
-main main(.start(start),.reset(reset),.interrupt(interrupt),.myclock(myclock),
-			,.halted(halted),.value(value)); //CLOCK AND INTERRUPTED!!
+main main(.start(start),.reset(reset),.myclock(myclock),.halted(halted),.value(value)); 
 
 //Here, I slow the clock of FPGA, since it is too fast.
 initial fpgaclock_counter<=0;
@@ -75,7 +73,7 @@ always @(posedge fpgaclock)
 						busy<=0;
 						ready<=1;
 					end
-				else if (interrupt==1)
+				else if (interrupt==1)		// Interrupt and stop working.
 					begin
 						clockworker<=0;
 						busy<=0;
@@ -94,7 +92,7 @@ always @(posedge fpgaclock)
 							interrupted<=0;
 							ready<=1;
 						end
-					else if (interrupt==1)
+					else if (interrupt==1)		//Interruption starts, process goes on again.
 						begin
 							clockworker<=1; 	
 							interrupted<=0;
