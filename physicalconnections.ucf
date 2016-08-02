@@ -4,7 +4,7 @@
 #NET "ld<5>" LOC = "n4" ; 
 #NET "ld<4>" LOC = "n5" ; 
 #NET "ld<3>" LOC = "p6" ; 
-NET "interrupted" LOC = "p7" ; 
+NET "interrupted" LOC = "p7" ;  //Below three are my output signal leds for ready, busy and interrupted.
 NET "busy" LOC = "m11" ; 
 NET "ready" LOC = "m5" ; 
  
