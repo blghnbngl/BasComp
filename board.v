@@ -62,21 +62,21 @@ always @(posedge fpgaclock)
 					begin
 						ready<=0;
 						busy<=1;
-						clockworker<=1;
+						clockworker<=1;		//Now, myclock starts to work so main also works.
 					end
 			end
 		else if (busy==1)
 			begin 
 				if (reset==1)				
 					begin
-						clockworker<=0;
-						busy<=0;
-						ready<=1;
+						clockworker<=0;		//myclock becomes 0 permanently so main does not work.
+						busy<=0;		// At the same time, reset signal causes main to return everything	
+						ready<=1;		// in main to its initial status.
 					end
 				else if (interrupt==1)		// Interrupt and stop working.
 					begin
-						clockworker<=0;
-						busy<=0;
+						clockworker<=0;		//myclock becomes 0 until interrupt is pressed again and main doesn't work.
+						busy<=0;		
 						interrupted<=1;
 					end 
 				else if (halted==1)		//This halts the process with an order in the code.
@@ -94,7 +94,7 @@ always @(posedge fpgaclock)
 						end
 					else if (interrupt==1)		//Interruption starts, process goes on again.
 						begin
-							clockworker<=1; 	
+							clockworker<=1; 	//myclock and main continue working.	
 							interrupted<=0;
 							busy=1;	
 						end
