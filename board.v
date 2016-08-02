@@ -7,9 +7,9 @@
 // Design Name: 
 // Module Name:    board 
 // Revision 0.01 - File Created
-// Additional Comments: Under this file, we have the main module. This one also sets the relationship with 
-// the physical components of FPGA.
-//
+// Additional Comments: Under this file, we have the main module working. Board module takes inputs and sends the necessary 
+// signals to main module, also sets the clock and sends it to the main module. It also specifies the necessary outputs.
+// These outputs are then turned into physical signals of FPGA by the UCF file.
 //////////////////////////////////////////////////////////////////////////////////
 module board(
 	 input fpgaclock,
