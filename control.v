@@ -19,45 +19,45 @@ module control(
     input interrupt,
     input start,
 	 input clk, 
-	 input dr_outdata,
-	 input ac_outdata,
+	 input [15:0] dr_outdata,
+	 input [15:0] ac_outdata,
 	 input e_outdata,
 	 input fgi_outdata,
 	 input fgo_outdata,
 	 input ien_outdata,
-    output [2:0] bus_code,
-    output ar_load,
-    output ar_inc,
-    output ar_clr,
-    output pc_load,
-    output pc_inc,
-    output pc_clr,
-    output dr_load,
-    output dr_inc,
-    output dr_clr,
-    output ac_load,
-    output ac_inc,
-    output ac_clr,
-    output ir_load,
-	 output ir_inc,
-	 output ir_clr,
-    output tr_load,
-    output tr_inc,
-    output tr_clr,
-	 output mem_write,
-	 output mem_read,			//This might be useless
-	 output e_clr,
-    output outr_load,
-    output [3:0] alu_code,
-	 output seq_clr,
-	 output seq_inc,
-	 output fgi_indata,
-	 output ff_fgien,
-	 output fgo_indata,
-	 output ff_fgoen,
-	 output ien_indata,
-	 output ff_ienen,
-	 output clockstopper
+    output reg [2:0] bus_code,
+    output reg ar_load,
+    output reg ar_inc,
+    output reg ar_clr,
+    output reg pc_load,
+    output reg pc_inc,
+    output reg pc_clr,
+    output reg dr_load,
+    output reg dr_inc,
+    output reg dr_clr,
+    output reg ac_load,
+    output reg ac_inc,
+    output reg ac_clr,
+    output reg ir_load,
+	 output reg ir_inc,
+	 output reg ir_clr,
+    output reg tr_load,
+    output reg tr_inc,
+    output reg tr_clr,
+	 output reg mem_write,
+	 output reg mem_read,			//This might be useless
+	 output reg e_clr,
+    output reg outr_load,
+    output reg [3:0] alu_code,
+	 output reg seq_clr,
+	 output reg seq_inc,
+	 output reg fgi_indata,
+	 output reg ff_fgien,
+	 output reg fgo_indata,
+	 output reg ff_fgoen,
+	 output reg ien_indata,
+	 output reg ff_ienen,
+	 output reg clockstopper
     );
 	 
 parameter T0 = 32'd0, T1=32'd1, T2=32'd2, T3=32'd3, T4=32'd4, T5=32'd5, T6=32'd6,T7=32'd7, T8=32'd8, T9=32'd9;	 
@@ -71,7 +71,7 @@ initial
 	begin
 		sequence_count=15*times[15]+14*times[14]+13*times[13]+12*times[12]+11*times[11]+10*times[10]+9*times[9]+
 		8*times[8]+7*times[7]+6*times[6]+5*times[5]+4*times[4]+3*times[3]+2*times[2]+1*times[1];
-		bus_code=3'b000;
+		/*bus_code=3'b000;
 		ar_load=0;
 		ar_inc=0;
 		ar_clr=0;
@@ -92,13 +92,13 @@ initial
 		tr_clr=0;
 		outr_load=0;
 		alu_code=4'b0000;
-		seqcountclr=0;
-		clockstopper=0;
+		seq_clr=0;
+		clockstopper=0;*/
 	end
 
-always @(posedge clock)
+always @(posedge reset or posedge clk)
 	begin
-		if (reset==1)
+		if (reset==1)				//LATER ADD THE FF CLEARS HERE!
 			begin
 				ar_clr=1;
 				pc_clr=1;
@@ -118,8 +118,6 @@ always @(posedge clock)
 				bus_code=3'b000;
 				starter=0;
 			end
-		else if (interrupt==1)
-			clockstopper=1; //TAKE A LOOK AT THIS!!!!!
 		else if (starter==0 & reset==0 & interrupt==0)
 			starter<=start;
 		else if (starter==1 && sequence_count<3)
@@ -157,8 +155,8 @@ always @(posedge clock)
 							bus_code=3'b101;
 							ar_load=1;
 							indirect=ir_outdata[15];						
-							opcode_errorchecker=instruction[7]+instruction[6]+instruction[5]+instruction[4]+instruction[3]
-														+instruction[2]+instruction[1]+instruction[0]; //That's for checking errors.
+							opcode_errorchecker=opcode[7]+opcode[6]+opcode[5]+opcode[4]+opcode[3]
+														+opcode[2]+opcode[1]+opcode[0]; //That's for checking errors.
 							registerreference_errorchecker = 11*ir_outdata[11]+10*ir_outdata[10]+9*ir_outdata[9]
 							+8*ir_outdata[8] +7*ir_outdata[7]+6*ir_outdata[6]+5*ir_outdata[5]+4*ir_outdata[4]
 							+3*ir_outdata[3]	+2*ir_outdata[2]+1*ir_outdata[1]+0*ir_outdata[0];
@@ -170,7 +168,7 @@ always @(posedge clock)
 			begin 
 				if (opcode_errorchecker!=1)
 					$display("Error in decoding opcode, in control unit");
-				else if (instruction[0]==1)			//And operation of Accumulator and Memory data
+				else if (opcode[0]==1)			//And operation of Accumulator and Memory data
 					begin
 						case(sequence_count)
 							T3:
@@ -209,7 +207,7 @@ always @(posedge clock)
 								end
 						endcase
 					end
-				else if(instruction[1]==1)	//Sum operation of Accumulator and Memory data
+				else if(opcode[1]==1)	//Sum operation of Accumulator and Memory data
 					begin
 						case (sequence_count)
 							T3:
@@ -248,7 +246,7 @@ always @(posedge clock)
 								end
 						endcase
 					end
-				else if (instruction[2]==1)	//Load memory data to AC
+				else if (opcode[2]==1)	//Load memory data to AC
 					begin
 						case (sequence_count)
 							T3:
@@ -280,14 +278,14 @@ always @(posedge clock)
 									dr_load=0;
 									mem_read=0;
 									bus_code=3'b000;
-									alu_code=4'b011;
+									alu_code=4'b0011;
 									ac_load=1;
 									seq_inc=0;
 									seq_clr=1;
 								end
 						endcase
 					end
-				else if (instruction[3]==1)	//Store AC to memory
+				else if (opcode[3]==1)	//Store AC to memory
 					begin
 						case(sequence_count)
 							T3:
@@ -317,7 +315,7 @@ always @(posedge clock)
 								end
 						endcase
 					end
-				else if (instruction[4]==1)	//Branch unconditionally
+				else if (opcode[4]==1)	//Branch unconditionally
 					begin
 						case(sequence_count)
 							T3:
@@ -347,7 +345,7 @@ always @(posedge clock)
 								end
 						endcase
 					end
-				else if (instruction[5]==1)		//Branch to subroutine
+				else if (opcode[5]==1)		//Branch to subroutine
 					begin
 						case (sequence_count)
 							T3:
@@ -386,7 +384,7 @@ always @(posedge clock)
 								end
 						endcase
 					end
-				else if (instruction[6]==1)	// Increment and skip if zero
+				else if (opcode[6]==1)	// Increment and skip if zero
 					begin
 						case(sequence_count)
 							T3:
@@ -436,11 +434,11 @@ always @(posedge clock)
 								end
 						endcase
 					end
-				else if (instruction[7]==1)
+				else if (opcode[7]==1)
 					begin
-						if (SequenceCounter==3) // To avoid any wrong-timed operations
+						if (sequence_count==3) // To avoid any wrong-timed operations
 								begin
-									if (Indirect==0)			//Below here, there are REGISTER REFERENCE instructions
+									if (indirect==0)			//Below here, there are REGISTER REFERENCE instructions
 										begin
 											if (ir_outdata[11]==1 && registerreference_errorchecker==11)	//Clear AC
 											//errochecker is to check errors, multiple 1's in 12 command bits
