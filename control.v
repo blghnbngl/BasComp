@@ -51,12 +51,9 @@ module control(
     output reg [3:0] alu_code,
 	 output reg seq_clr,
 	 output reg seq_inc,
-	 output reg fgi_indata,
-	 output reg ff_fgien,
-	 output reg fgo_indata,
-	 output reg ff_fgoen,
+	 output reg control_fgi_indata,
+	 output reg control_fgo_indata,
 	 output reg ien_indata,
-	 output reg ff_ienen,
 	 output reg clockstopper
     );
 	 
@@ -117,6 +114,8 @@ always @(posedge reset or posedge clk)
 				mem_read=0;
 				bus_code=3'b000;
 				starter=0;
+				control_fgi_indata=0;
+				control_fg0_indata=0;
 			end
 		else if (starter==0 & reset==0 & interrupt==0)
 			starter<=start;
@@ -134,6 +133,8 @@ always @(posedge reset or posedge clk)
 							mem_write=0;
 							mem_read=0;
 							seq_clr=0;
+							control_fgi_indata=0;
+							control_fgo_indata=0;
 							bus_code=3'b010;
 							ar_load=1;
 							seq_inc=1;
@@ -590,8 +591,7 @@ always @(posedge reset or posedge clk)
 														seq_inc=0;
 														alu_code=4'b1101;
 														ac_load=1;	
-														ff_fgien=1;
-														fgi_indata=0;
+														control_fgi_indata=1;
 														seq_clr=1;
 													end
 												else if (ir_outdata[10]==1 && registerreference_errorchecker==10)	//Output character from AC
@@ -601,7 +601,7 @@ always @(posedge reset or posedge clk)
 														bus_code=3'b100;
 														outr_load=1;
 														ff_fgoen=1;
-														fgo_indata=0;
+														control_fgo_indata=1;
 														seq_clr=1;											
 													end
 												else if (ir_outdata[9]==1 && registerreference_errorchecker==9)	//Skip on input flag.
@@ -642,12 +642,10 @@ always @(posedge reset or posedge clk)
 													end
 												else if (ir_outdata[7]==1 && registerreference_errorchecker==7)	//Interrupt enable on
 													begin
-														ff_fgien=1;
 														ien_indata=1;
 													end
 												else if (ir_outdata[6]==1 && registerreference_errorchecker==6)	//Interrupt enable off
 													begin
-														ff_fgien=1;
 														ien_indata=0;
 													end
 										end

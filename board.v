@@ -7,15 +7,20 @@
 // Design Name: 
 // Module Name:    board 
 // Revision 0.01 - File Created
-// Additional Comments: Under this file, we have the main module working. Board module takes inputs and sends the necessary 
-// signals to main module, also sets the clock and sends it to the main module. It also specifies the necessary outputs.
-// These outputs are then turned into physical signals of FPGA by the UCF file.
+// Additional Comments: Under this file, we have the main module. This one also sets the relationship with 
+// the physical components of FPGA.
+//
 //////////////////////////////////////////////////////////////////////////////////
 module board(
 	 input fpgaclock,
     input start,
     input interrupt,
     input reset,
+	 input ps2d,
+	 input ps2c,
+	 output vsynch,
+	 output hsynch,
+	 output [7:0] rgb,
     output reg ready,
     output reg busy,
     output reg interrupted
@@ -24,19 +29,35 @@ module board(
 reg clockworker;			// When this FF becomes 0 myclcok stops, when this becomes 1 myclock works.
 reg [20:0] fpgaclock_counter;		//This counter is used to slow the FPGA's clock
 reg myclock;				// That's the clock that goes in the main module
+
+reg mhz25_clock;	// A slower clock (at rate 25 MHz) is needed for VGA interface
+
 wire halted;				//This comes from main module as an out-signal.
 
-main main(.start(start),.reset(reset),.myclock(myclock),.halted(halted),.value(value)); 
+main main(.start(start),.reset(reset),.myclock(myclock),.ps2d(ps2d),.ps2c(ps2c),.vsynch(vsynch),
+			.hsynch(hsynch),.rgb(rgb),.halted(halted),.value(value),.mhz25_clock(mhz25_clock)); 
+			
 
 //Here, I slow the clock of FPGA, since it is too fast.
-initial fpgaclock_counter<=0;
+initial
+	begin
+		fpgaclock_counter<=0;
+		mhz25_clock<=0;
+	end
 
+	
 always @ (posedge fpgaclock)
 	begin
 		if (fpgaclock_counter==21'b111111111111111111111)
-			fpgaclock_counter<=0;
+			begin
+				fpgaclock_counter<=0;
+				mhz25_clock<=~mhz25_clock;
+			end
 		else
-			fpgaclock_counter<=fpgaclock_counter+1;
+			begin
+				fpgaclock_counter<=fpgaclock_counter+1;
+				mhz25_clock<=~mhz25_clock;
+			end
 	end
 
 //Now, I set myclock as a combination of slowed fpga clock and my decision to start the process.

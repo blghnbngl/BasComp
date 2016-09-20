@@ -26,6 +26,12 @@ module main(
     input reset,
     input interrupt,
 	 input myclock,
+	 input ps2d,
+	 input ps2c,
+	 input mhz25_clock,
+	 output vsynch,
+	 output hsynch,
+	 output rgb [7:0],
 	 output reg halted,
     output reg [13:0] value
     );
@@ -57,7 +63,26 @@ module main(
 	 wire ien_indata, ien_clr, ff_ienen, ien_outdata; //For the Flip-Flop IEN, ie. interrupt enable.
 	 wire [7:0] instruction;
 	 wire [15:0] times;
-		 
+	 wire input_arrived_flag;				//For I/O interface, begins
+	 wire [7:0] keyboard_input_data;
+	 wire ps2c,ps2d;
+	 wire vsynch,hsynch;
+	 wire output_went_flag;
+	 wire mhz25_clock;							
+	 wire [7:0] rgb;							//For I/O interface, end
+	 wire alwaystrue, alwaysfalse;
+	 
+assign alwaystrue=1'b1;
+assign alwaysfalse=1'b0;
+
+   	
+	 
+
+ 
+//For inputs and outputs
+io_interface io(.clock(myclock),.ps2c(ps2c), .ps2d(ps2d),.outr_outdata(outr_outdata),
+					 .keyboard_input_data(keyboard_input_data),.input_arrived_flag(input_arrived_flag), 
+					 .vsynch(vsynch), .hsynch(hsynch), .rgb(rgb));
 	 
 // In parantheses is what goes out, out parentheses is the in-module name.
 memory mem(.adress(ar_outdata), .clk(myclock), .read(mem_read), .write(mem_write), .indata(bus_data), .outdata(mem_outdata));//!!!!A difference with Enes 
@@ -65,7 +90,9 @@ memory mem(.adress(ar_outdata), .clk(myclock), .read(mem_read), .write(mem_write
 // I use bus data for indata. It should be changed for input register since it takes from outside. Will deal
 //with this later. As name suggests, these are 8-bit registers. Note that some inputs are never used, like increment
 //but I kept them to have a general register framework.
-eightbitregister inpr(.clk(myclock), .load(inpr_load), .inc(inpr_inc), .clr(inpr_clr), .out_data(inpr_outdata), .in_data(bus_data));
+   
+input_register inpr(.clk(myclock), .keyboard_input(keyboard_input), .input_arrived_flag(input_arrived_flag),
+							.input_data(input_data));
 eightbitregister outr(.clk(myclock), .load(outr_load), .inc(outr_inc), .clr(outr_clr), .out_data(outr_outdata), .in_data(bus_data));
 
 //smallregisters are 12-bit registers.
@@ -93,9 +120,9 @@ buschooser bus_chooser(.bus_code(bus_code),.ar_outdata(ar_outdata),.pc_outdata(p
 //Below are the necessary Flip Flops. E, FGI&FGO (Input-output clocks), IEN (interrupt enable)
 // Probably a few more FFs will come here in the future (for interrupt, ready, busy signals).
 ff e(.clk(myclock), .ff_indata(e_indata),.reset(reset),.ff_clr(e_clr),.ff_en(ff_een),.ff_outdata(e_outdata), .ff_outdata_bar(e_outdata_bar));
-ff fgi(.clk(myclock), .ff_indata(fgi_indata),.reset(reset),.ff_clr(fgi_clr),.ff_en(ff_fgien),.ff_outdata(fgi_outdata), .ff_outdata_bar(fgi_outdata_bar));
-ff fgo(.clk(myclock), .ff_indata(fgo_indata),.reset(reset),.ff_clr(fgo_clr),.ff_en(ff_fgoen),.ff_outdata(fgo_outdata), .ff_outdata_bar(fgo_outdata_bar));
-ff ien(.clk(myclock), .ff_indata(ien_indata),.reset(reset),.ff_clr(ien_clr),.ff_en(ff_ienen),.ff_outdata(ien_outdata), .ff_outdata_bar(ien_outdata_bar));
+ff fgi(.clk(myclock), .ff_indata(~control_fgi_indata & input_arrived_flag),.reset(reset),.ff_clr(fgi_clr),.ff_en(alwaystrue),.ff_outdata(fgi_outdata), .ff_outdata_bar(fgi_outdata_bar));
+ff fgo(.clk(myclock), .ff_indata(~control_fgo_indata & output_went_flag),.reset(reset),.ff_clr(fgo_clr),.ff_en(alwaystrue),.ff_outdata(fgo_outdata), .ff_outdata_bar(fgo_outdata_bar));
+ff ien(.clk(myclock), .ff_indata(ien_indata),.reset(reset),.ff_clr(ien_clr),.ff_en(alwaystrue),.ff_outdata(ien_outdata), .ff_outdata_bar(ien_outdata_bar));
 
 
 threebitdecoder dec_opcode(.opcode(ir_outdata[14:12]), .instruction(instruction));
