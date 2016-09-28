@@ -25,6 +25,7 @@ module control(
 	 input fgi_outdata,
 	 input fgo_outdata,
 	 input ien_outdata,
+	 input r_outdata,
     output reg [2:0] bus_code,
     output reg ar_load,
     output reg ar_inc,
@@ -54,8 +55,11 @@ module control(
 	 output reg control_fgi_indata,
 	 output reg control_fgo_indata,
 	 output reg ien_indata,
+	 output reg r_clr,
 	 output reg clockstopper
     );
+	 
+	 
 	 
 parameter T0 = 32'd0, T1=32'd1, T2=32'd2, T3=32'd3, T4=32'd4, T5=32'd5, T6=32'd6,T7=32'd7, T8=32'd8, T9=32'd9;	 
 integer sequence_count;
@@ -66,9 +70,10 @@ reg starter;
 	 
 initial
 	begin
+		/*
 		sequence_count=15*times[15]+14*times[14]+13*times[13]+12*times[12]+11*times[11]+10*times[10]+9*times[9]+
 		8*times[8]+7*times[7]+6*times[6]+5*times[5]+4*times[4]+3*times[3]+2*times[2]+1*times[1];
-		/*bus_code=3'b000;
+		bus_code=3'b000;
 		ar_load=0;
 		ar_inc=0;
 		ar_clr=0;
@@ -103,7 +108,9 @@ always @(posedge reset or posedge clk)
 				ac_clr=1;
 				tr_clr=1;
 				seq_clr=1;
+				r_clr=1;
 				pc_load=0;
+				pc_inc=0;				//LOOK AT THIS!!
 				dr_load=0;
 				ac_load=0;
 				ir_load=0;
@@ -113,9 +120,9 @@ always @(posedge reset or posedge clk)
 				mem_write=0;
 				mem_read=0;
 				bus_code=3'b000;
-				starter=0;
+				starter<=0;
 				control_fgi_indata=0;
-				control_fg0_indata=0;
+				control_fgo_indata=0;
 			end
 		else if (starter==0 & reset==0 & interrupt==0)
 			starter<=start;
@@ -124,44 +131,96 @@ always @(posedge reset or posedge clk)
 				case(sequence_count)
 					T0:
 						begin
-							pc_load=0;
-							dr_load=0;
-							ac_load=0;
-							ir_load=0;
-							tr_load=0;
-							outr_load=0;
-							mem_write=0;
-							mem_read=0;
-							seq_clr=0;
-							control_fgi_indata=0;
-							control_fgo_indata=0;
-							bus_code=3'b010;
-							ar_load=1;
-							seq_inc=1;
+							if (r_outdata != 1)
+								begin
+									pc_load=0;
+									dr_load=0;
+									ac_load=0;
+									ir_load=0;
+									tr_load=0;
+									r_clr=0;
+									outr_load=0;
+									pc_inc=0;
+									mem_write=0;
+									mem_read=0;
+									seq_clr=0;
+									control_fgi_indata=0;
+									control_fgo_indata=0;
+									bus_code=3'b010;
+									ar_load=1;
+									seq_inc=1;
+								end
+							else
+								begin
+									pc_load=0;
+									dr_load=0;
+									ac_load=0;
+									ir_load=0;
+									tr_load=0;
+									outr_load=0;
+									r_clr=0;
+									pc_inc=0;
+									mem_write=0;
+									mem_read=0;
+									seq_clr=0;
+									control_fgi_indata=0;
+									control_fgo_indata=0;
+									bus_code=3'b010;
+									tr_load=1;
+									ar_clr=1;
+									seq_inc=1;
+								end
 						end  
 					T1:
 						begin
-							ar_load=0;
-							mem_read=1;
-							bus_code=3'b111;
-							ir_load=1;
-							seq_inc=1;
+							if (r_outdata != 1)
+								begin
+									ar_load=0;
+									mem_read=1;
+									bus_code=3'b111;
+									ir_load=1;
+									seq_inc=1;
+								end
+							else
+								begin
+									tr_load=0;
+									ar_clr=0;
+									mem_read=0;
+									bus_code=3'b110;
+									mem_write=1;
+									pc_clr=1;
+									seq_inc=1;
+								end
 						end
 					T2:
 						begin
-						// I GUESS (or hope) the decoding is done in the main module,
-						// so there is no need to write here
-							mem_read=0;
-							ir_load=0;
-							bus_code=3'b101;
-							ar_load=1;
-							indirect=ir_outdata[15];						
-							opcode_errorchecker=opcode[7]+opcode[6]+opcode[5]+opcode[4]+opcode[3]
+							if (r_outdata != 1)
+								begin
+									// I GUESS (or hope) the decoding is done in the main module,
+									// so there is no need to write here
+									mem_read=0;
+									ir_load=0;
+									bus_code=3'b101;
+									ar_load=1;
+									indirect=ir_outdata[15];						
+									opcode_errorchecker=opcode[7]+opcode[6]+opcode[5]+opcode[4]+opcode[3]
 														+opcode[2]+opcode[1]+opcode[0]; //That's for checking errors.
-							registerreference_errorchecker = 11*ir_outdata[11]+10*ir_outdata[10]+9*ir_outdata[9]
-							+8*ir_outdata[8] +7*ir_outdata[7]+6*ir_outdata[6]+5*ir_outdata[5]+4*ir_outdata[4]
-							+3*ir_outdata[3]	+2*ir_outdata[2]+1*ir_outdata[1]+0*ir_outdata[0];
-							seq_inc=1;
+									registerreference_errorchecker = 11*ir_outdata[11]+10*ir_outdata[10]+9*ir_outdata[9]
+									+8*ir_outdata[8] +7*ir_outdata[7]+6*ir_outdata[6]+5*ir_outdata[5]+4*ir_outdata[4]
+									+3*ir_outdata[3]	+2*ir_outdata[2]+1*ir_outdata[1]+0*ir_outdata[0];
+									seq_inc=1;
+								end
+							else
+								begin
+									bus_code=3'b000;
+									mem_write=0;
+									pc_clr=0;
+									seq_inc=0;
+									pc_inc=1;
+									ien_indata=0;
+									r_clr=1;
+									seq_clr=1;
+								end
 						end
 				endcase	
 			end
@@ -600,7 +659,6 @@ always @(posedge reset or posedge clk)
 														seq_inc=0;
 														bus_code=3'b100;
 														outr_load=1;
-														ff_fgoen=1;
 														control_fgo_indata=1;
 														seq_clr=1;											
 													end

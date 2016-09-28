@@ -98,9 +98,11 @@ always @ (outr_outdata)			//When output register data changes, output went flag 
 		output_went_flag<=0;
 	end
 
-always @*
-	if (fgo_signal_counter==19'b1001011000000000000)	 
-		output_went_flag<=1;								//When all the screen is covered, a signal is sent to FGO.
+always @ (fgo_signal_counter)
+	begin
+		if (fgo_signal_counter==19'b1001011000000000000)	 
+			output_went_flag<=1;								//When all the screen is covered, a signal is sent to FGO.
+	end
 	
 always @(*)
 	begin

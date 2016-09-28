@@ -44,19 +44,21 @@
 genvar i;
 genvar j;
 
-wire [15:0] CLK, FF_INDATA, FF_CLR, RESET, FF_EN, FF_OUTDATA, FF_OUTDATA_BAR;
+wire [15:0] CLOCK, FF_INDATA, FF_CLR, RESET, FF_EN, FF_OUTDATA, FF_OUTDATA_BAR;
 wire [15:0] outdatabars, incrementalindata, temporary1;
 
-ff datasaved [15:0]  (CLK, FF_INDATA, FF_CLR, RESET, FF_EN, FF_OUTDATA, FF_OUTDATA_BAR);	//16 flip flops
+ff datasaved [15:0]  (CLOCK, FF_INDATA, FF_CLR, RESET, FF_EN, FF_OUTDATA, FF_OUTDATA_BAR);	//16 flip flops
 //Here, this lining of input outputs should be correct otherwise there will be errors!
 
-for (i=0;i<16;i=i+1)				//These inputs are same for all flip flops.
-	begin
-		assign CLK[i] = clk;
-		assign FF_EN[i] = 1;
-		assign RESET[i]=0;
-		assign FF_CLR[i]=clr;
-	end
+generate
+	for (i=0;i<16;i=i+1)				//These inputs are same for all flip flops.
+		begin: common_inputs
+			assign CLOCK[i] = clk;
+			assign FF_EN[i] = 1;
+			assign RESET[i]=0;
+			assign FF_CLR[i]=clr;
+		end
+endgenerate
 
 assign FF_INDATA[0] =  ((load & indata[0] & ~inc) | ( (~load) & (~inc) & FF_OUTDATA[0]) | 
 								( (~load) & inc & (~FF_OUTDATA[0])) );
@@ -65,7 +67,7 @@ assign temporary1[0] = FF_OUTDATA[0];
 
 generate
 		for (j=1;j<16;j=j+1)			//Checks whether all prior flip flops are 0 for each flip flop
-			begin
+			begin: incremental_flipflop_checker
 				assign temporary1[j] = temporary1[j-1] & FF_OUTDATA[j];    
 			end
 endgenerate			
@@ -73,7 +75,7 @@ endgenerate
 	
 generate
 	for (i=1;i<16;i=i+1)
-		begin
+		begin: ff_indata_assignments
 			assign incrementalindata[i] = (FF_OUTDATA[i] ^ temporary1[i-1]);
 			assign FF_INDATA[i] =(load & indata[i] & ~inc) | ( (~load) & (~inc) & FF_OUTDATA[i]) | 
 						( (~load) & inc & incrementalindata[i]);		//WHat comes as input in each clock cycle
@@ -82,7 +84,7 @@ endgenerate
 
 generate
 	for (i=0;i<16;i=i+1)			//Assigns the flip flop outputs to the module output wires.
-		begin
+		begin: output_assignments
 			assign outdata[i] = FF_OUTDATA[i];
 			assign outdatabars[i] = FF_OUTDATA_BAR[i];
 		end

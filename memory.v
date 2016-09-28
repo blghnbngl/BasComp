@@ -22,7 +22,7 @@ reg [15:0] memorydata [0:4095];
 
 initial
 	begin
-		outdata=memorydata[adress];
+		outdata=16'b0000000000000000;
 	end
 
 always @(posedge clk)
@@ -30,7 +30,7 @@ always @(posedge clk)
 			if (read==1 & write==0)
 				outdata=memorydata[adress];
 			else if (read==0 & write==1)
-					memorydata[adress]=indata;	
+					memorydata[adress]=indata;
 			else if (read==1 & write==1)
 				begin
 					$display("Error: Multiple commands on memory");

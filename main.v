@@ -31,7 +31,7 @@ module main(
 	 input mhz25_clock,
 	 output vsynch,
 	 output hsynch,
-	 output rgb [7:0],
+	 output [7:0] rgb,
 	 output reg halted,
     output reg [13:0] value
     );
@@ -63,13 +63,7 @@ module main(
 	 wire ien_indata, ien_clr, ff_ienen, ien_outdata; //For the Flip-Flop IEN, ie. interrupt enable.
 	 wire [7:0] instruction;
 	 wire [15:0] times;
-	 wire input_arrived_flag;				//For I/O interface, begins
-	 wire [7:0] keyboard_input_data;
-	 wire ps2c,ps2d;
-	 wire vsynch,hsynch;
-	 wire output_went_flag;
-	 wire mhz25_clock;							
-	 wire [7:0] rgb;							//For I/O interface, end
+	 wire input_arrived_flag;				
 	 wire alwaystrue, alwaysfalse;
 	 
 assign alwaystrue=1'b1;
@@ -93,7 +87,7 @@ memory mem(.adress(ar_outdata), .clk(myclock), .read(mem_read), .write(mem_write
    
 input_register inpr(.clk(myclock), .keyboard_input(keyboard_input), .input_arrived_flag(input_arrived_flag),
 							.input_data(input_data));
-eightbitregister outr(.clk(myclock), .load(outr_load), .inc(outr_inc), .clr(outr_clr), .out_data(outr_outdata), .in_data(bus_data));
+eightbitregister outr(.clk(myclock), .load(outr_load), .inc(alwaysfalse), .clr(outr_clr), .out_data(outr_outdata), .in_data(bus_data));
 
 //smallregisters are 12-bit registers.
 smallregister ar(.clk(myclock), .load(ar_load), .inc(ar_inc), .clr(ar_clr), .outdata(ar_outdata), .indata(bus_data));
@@ -118,13 +112,20 @@ buschooser bus_chooser(.bus_code(bus_code),.ar_outdata(ar_outdata),.pc_outdata(p
 				.bus_data(bus_data));
 
 //Below are the necessary Flip Flops. E, FGI&FGO (Input-output clocks), IEN (interrupt enable)
+//r input/output interrupt.
 // Probably a few more FFs will come here in the future (for interrupt, ready, busy signals).
 ff e(.clk(myclock), .ff_indata(e_indata),.reset(reset),.ff_clr(e_clr),.ff_en(ff_een),.ff_outdata(e_outdata), .ff_outdata_bar(e_outdata_bar));
 ff fgi(.clk(myclock), .ff_indata(~control_fgi_indata & input_arrived_flag),.reset(reset),.ff_clr(fgi_clr),.ff_en(alwaystrue),.ff_outdata(fgi_outdata), .ff_outdata_bar(fgi_outdata_bar));
 ff fgo(.clk(myclock), .ff_indata(~control_fgo_indata & output_went_flag),.reset(reset),.ff_clr(fgo_clr),.ff_en(alwaystrue),.ff_outdata(fgo_outdata), .ff_outdata_bar(fgo_outdata_bar));
 ff ien(.clk(myclock), .ff_indata(ien_indata),.reset(reset),.ff_clr(ien_clr),.ff_en(alwaystrue),.ff_outdata(ien_outdata), .ff_outdata_bar(ien_outdata_bar));
+ff r(.clk(myclock), .ff_indata(r_indata),.reset(reset),.ff_clr(r_clr),.ff_en(alwaystrue),.ff_outdata(r_outdata), .ff_outdata_bar(r_outdata_bar));
 
+assign r_indata = ((sequence[3] || sequence[2] || (sequence[1] && sequence[0]))==1) ? 
+						(ien_outdata & (fgo_outdata || fgi_outdata)) : 1'b0; 				
+// The interrupt flag, r is assigned 1 if al three conditions are satisfied: 1)We are not in T0,T1 or T2. 
+// 2) Interrupt is enabled. 3) One of the output or input flags are up. Above assignment assures this.
 
+	
 threebitdecoder dec_opcode(.opcode(ir_outdata[14:12]), .instruction(instruction));
 fourbitdecoder seq_code(.code(sequence), .times(times));
 // Above two make things ready for control, and become inputs to control unit. I'm not sure whether
@@ -132,7 +133,8 @@ fourbitdecoder seq_code(.code(sequence), .times(times));
 	
 control controller(.ir_outdata(ir_outdata),.opcode(instruction),.times(times),
 						.reset(reset),.interrupt(interrupt),.start(start),.clk(myclock),
-						.dr_outdata(dr_outdata), .ac_outdata(ac_outdata),.e_outdata(e_outdata),
+						.dr_outdata(dr_outdata), .ac_outdata(ac_outdata),
+						.e_outdata(e_outdata),.r_outdata(r_outdata),
 						.bus_code(bus_code), 
 						.mem_write(mem_write),.mem_read(mem_read),
 						.ar_load(ar_load), .ar_inc(ar_inc),.ar_clr(ar_clr),
@@ -141,13 +143,14 @@ control controller(.ir_outdata(ir_outdata),.opcode(instruction),.times(times),
 						.ac_load(ac_load), .ac_inc(ac_inc),.ac_clr(ac_clr),
 						.ir_load(ir_load),.ir_inc(ir_inc),.ir_clr(ir_clr),
 						.tr_load(tr_load), .tr_inc(tr_inc),.tr_clr(tr_clr),
-						.outr_load(outr_load),.outr_inc(outr_inc),.outr_clr(outr_clr),
+						.outr_load(outr_load),
 						.seq_clr(seq_clr),.seq_inc(seq_inc),
-						.fgi_outdata(fgi_outdata),.fgi_indata(fgi_indata),.ff_fgien(ff_fgien),
-						.fgo_outdata(fgo_outdata),.fgo_indata(fgo_indata),.ff_fgoen(ff_fgoen),
-						.ien_outdata(ien_outdata),.ien_indata(ien_indata),.ff_ienen(ff_ienen),
-						.e_clr(e_clr),
+						.fgi_outdata(fgi_outdata),.control_fgi_indata(control_fgi_indata),
+						.fgo_outdata(fgo_outdata),.control_fgo_indata(control_fgo_indata),
+						.ien_outdata(ien_outdata),.ien_indata(ien_indata),
+						.e_clr(e_clr), .r_clr(r_clr),
 						.alu_code(alu_code)
 						);
+ 
 
 endmodule

@@ -27,7 +27,7 @@ module buschooser(
 									((bus_code==3'b100) ? ac_outdata[15:0] : 
 									((bus_code==3'b011) ? dr_outdata[15:0] :
 									((bus_code==3'b010) ? {4'b0000, pc_outdata[11:0]} :
-									((bus_code==3'b001) ? {4'b0000, ar_outdata[11:0]} : 15'bxxxxxxxxxxxxxxx ))))));									
+									((bus_code==3'b001) ? {4'b0000, ar_outdata[11:0]} : 16'bxxxxxxxxxxxxxxxx ))))));									
 	
 	
 	

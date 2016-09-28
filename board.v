@@ -70,9 +70,9 @@ always @(fpgaclock_counter[20] or clockworker)
     
 initial
 	begin
-		ready=1;
-		busy=0;
-		interrupted=0;
+		ready<=1;
+		busy<=0;
+		interrupted<=0;
 	end
 	
 always @(posedge fpgaclock)
@@ -117,7 +117,7 @@ always @(posedge fpgaclock)
 						begin
 							clockworker<=1; 	//myclock and main continue working.	
 							interrupted<=0;
-							busy=1;	
+							busy<=1;	
 						end
 			end
 	end 

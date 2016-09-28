@@ -63,29 +63,32 @@ assign alu_outdata[15] = ( alu_code==4'b0001) ? (ac_outdata[15] & dr_outdata[15]
 								(( alu_code==4'b1011) ? e_outdata:
 								(( alu_code==4'b1100) ? ac_outdata[14]:
 								(( alu_code==4'b1101) ? ac_outdata[15] : 16'bxxxxxxxxxxxxxxxx))))));
-								
-for (i=14; i>7;i=i-1)
-	begin
-		assign alu_outdata[i] = ( alu_code==4'b0001) ? (ac_outdata[i] & dr_outdata[i]): 
-								(( alu_code==4'b0010) ? sxtnbitsum[i] :
-								(( alu_code==4'b0011) ? dr_outdata[i] :
-								(( alu_code==4'b1001) ? ~ac_outdata[i] :
-								(( alu_code==4'b1011) ? ac_outdata[i+1]:
-								(( alu_code==4'b1100) ? ac_outdata[i-1]:
-								(( alu_code==4'b1101) ? ac_outdata[i] : 16'bxxxxxxxxxxxxxxxx))))));								
-	end
+				
+generate				
+	for (i=14; i>7;i=i-1)
+		begin: outputs8to14
+			assign alu_outdata[i] = ( alu_code==4'b0001) ? (ac_outdata[i] & dr_outdata[i]): 
+									(( alu_code==4'b0010) ? sxtnbitsum[i] :
+									(( alu_code==4'b0011) ? dr_outdata[i] :
+									(( alu_code==4'b1001) ? ~ac_outdata[i] :
+									(( alu_code==4'b1011) ? ac_outdata[i+1]:
+									(( alu_code==4'b1100) ? ac_outdata[i-1]:
+									(( alu_code==4'b1101) ? ac_outdata[i] : 16'bxxxxxxxxxxxxxxxx))))));								
+		end
+endgenerate
 	
-for (j=7; j>0;j=j-1)
-	begin
-		assign alu_outdata[j] = ( alu_code==4'b0001) ? (ac_outdata[j] & dr_outdata[j]): 
-								(( alu_code==4'b0010) ? sxtnbitsum[j] :
-								(( alu_code==4'b0011) ? dr_outdata[j] :
-								(( alu_code==4'b1001) ? ~ac_outdata[j] :
-								(( alu_code==4'b1011) ? ac_outdata[j+1]:
-								(( alu_code==4'b1100) ? ac_outdata[j-1]:
-								(( alu_code==4'b1101) ? inpr_outdata[j] : 16'bxxxxxxxxxxxxxxxx))))));								
-	end
-	
+generate
+	for (j=7; j>0;j=j-1)
+		begin: outputs0to7
+			assign alu_outdata[j] = ( alu_code==4'b0001) ? (ac_outdata[j] & dr_outdata[j]): 
+									(( alu_code==4'b0010) ? sxtnbitsum[j] :
+									(( alu_code==4'b0011) ? dr_outdata[j] :
+									(( alu_code==4'b1001) ? ~ac_outdata[j] :
+									(( alu_code==4'b1011) ? ac_outdata[j+1]:
+									(( alu_code==4'b1100) ? ac_outdata[j-1]:
+									(( alu_code==4'b1101) ? inpr_outdata[j] : 16'bxxxxxxxxxxxxxxxx))))));								
+		end
+endgenerate
 
 assign alu_outdata[0] = ( alu_code==4'b0001) ? (ac_outdata[0] & dr_outdata[0]): 
 								(( alu_code==4'b0010) ? sxtnbitsum[0] :

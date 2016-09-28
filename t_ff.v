@@ -8,14 +8,9 @@
 // Module Name:    t_ff 
 // Project Name: 
 // Target Devices: 
-// Tool versions: 
-// Description: 
 //
-// Dependencies: 
 //
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
+//	This is a T Flip Flop, which toggles in each positive edge of the clock
 //
 //////////////////////////////////////////////////////////////////////////////////
 module t_ff(
