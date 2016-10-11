@@ -23,7 +23,7 @@ module io_interface(
     input ps2d,
     input ps2c,
 	 input mhz25_clock,
-	 input reset,
+	 input io_clr,
 	 input [7:0] outr_outdata,
 	 output [7:0] keyboard_input_data ,
 	 output input_arrived_flag,
@@ -33,12 +33,13 @@ module io_interface(
 	 output output_went_flag
     );
 	 
-keyboard_input_interface keyboard_input(.ps2c(ps2c), .ps2d(ps2d), .keyboard_input_data(keyboard_input_data),
-										.input_arrived_flag(input_arrived_flag));
-
-vga_output_interface vga_output(.mhz25_clock(mhz25_clock), .outr_outdata(outr_outdata), .reset(reset), 
-										  .vsynch(vsynch), .hsynch(hsynch), .rgb(rgb), 
-										  .output_went_flag(output_went_flag));
+keyboard_input_interface keyboard_input(.clr(io_clr), .ps2c(ps2c), .ps2d(ps2d), 
+													 .keyboard_input_data(keyboard_input_data),
+													 .input_arrived_flag(input_arrived_flag) );
+ 
+vga_output_interface vga_output(.mhz25_clock(mhz25_clock), .outr_outdata(outr_outdata),  
+										  .vsynch(vsynch), .hsynch(hsynch), .rgb(rgb),
+										  .clr(io_clr), .output_went_flag(output_went_flag));
 
 
 

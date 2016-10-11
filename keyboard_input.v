@@ -28,12 +28,14 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 module keyboard_input_interface(
+	 input clr,
     input ps2c,									//ps2 clock
     input ps2d,									//ps2 data
     output reg [7:0] keyboard_input_data,
     output reg input_arrived_flag
     );
 
+	 
 reg [7:0] data_curr;
 reg [7:0] data_pre;
 reg flag;
@@ -50,25 +52,34 @@ initial
 		keyboard_input_data<=8'hf0;
 	end
 	
-always @(negedge ps2c) //Activating at negative edge of clock from keyboard, becuase of properties of 
+always @(negedge ps2c or posedge clr) //Activating at negative edge of clock from keyboard, becuase of properties of 
 	begin					 // PS/2 devices.	Below, the input is stored.
-		case(b)
-			1:; //first bit, which should be 0.
-			2:data_curr[0]<=ps2d;
-			3:data_curr[1]<=ps2d;
-			4:data_curr[2]<=ps2d;
-			5:data_curr[3]<=ps2d;
-			6:data_curr[4]<=ps2d;
-			7:data_curr[5]<=ps2d;
-			8:data_curr[6]<=ps2d;
-			9:data_curr[7]<=ps2d;
-			10:flag<=1'b1; //Parity bit
-			11:flag<=1'b0; //Ending bit, which should be 1
-		endcase
-		if(b<=10)
-			b<=b+1;
-		else if(b==11)
-			b<=1;
+		if (clr==1)
+			begin
+				b<=4'h1;
+				flag<=1'b0;
+				data_curr<=8'hf0;
+			end
+		else
+			begin
+				case(b)
+				1:; //first bit, which should be 0.
+				2:data_curr[0]<=ps2d;
+				3:data_curr[1]<=ps2d;
+				4:data_curr[2]<=ps2d;
+				5:data_curr[3]<=ps2d;
+				6:data_curr[4]<=ps2d;
+				7:data_curr[5]<=ps2d;
+				8:data_curr[6]<=ps2d;
+				9:data_curr[7]<=ps2d;
+				10:flag<=1'b1; //Parity bit
+				11:flag<=1'b0; //Ending bit, which should be 1
+				endcase
+			if(b<=10)
+				b<=b+1;
+			else if(b==11)
+				b<=1;
+			end
 	end
 	
 always@(posedge flag) // Printing data obtained to keyboard_input_data

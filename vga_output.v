@@ -20,7 +20,7 @@
 module vga_output_interface(
     input mhz25_clock,
     input [7:0] outr_outdata,
-	 input reset,
+	 input clr,
     output vsynch,
     output hsynch,
     output reg [7:0] rgb,
@@ -60,9 +60,9 @@ initial
 		output_went_flag<=0;
 	end
 
-always @(posedge mhz25_clock or posedge reset)
+always @(posedge mhz25_clock or posedge clr)
 	begin
-		if (reset == 1)	// reset condition
+		if (clr == 1)	// reset condition
 			begin
 				hc <= 0;
 				vc <= 0;
@@ -116,10 +116,12 @@ always @(*)
 						rgb[1:0] <= outr_outdata[1:0]; //blue
 						fgo_signal_counter<=fgo_signal_counter+1;	//For each pixel, counter is increased one.
 					end
+				else
+					rgb[7:0] <= 8'b00000000;		//All black
 			end
 		else // we're outside active vertical range so display black
 			begin
-				rgb<=0;
+				rgb[7:0] <= 8'b00000000;
 			end
 	end
 

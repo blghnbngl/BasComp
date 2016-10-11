@@ -24,7 +24,6 @@
 module main(
     input start,
     input reset,
-    input interrupt,
 	 input myclock,
 	 input ps2d,
 	 input ps2c,
@@ -33,7 +32,7 @@ module main(
 	 output hsynch,
 	 output [7:0] rgb,
 	 output reg halted,
-    output reg [13:0] value
+    output reg [15:0] value
     );
 		
 	 
@@ -65,6 +64,7 @@ module main(
 	 wire [15:0] times;
 	 wire input_arrived_flag;				
 	 wire alwaystrue, alwaysfalse;
+	
 	 
 assign alwaystrue=1'b1;
 assign alwaysfalse=1'b0;
@@ -74,20 +74,36 @@ assign alwaysfalse=1'b0;
 
  
 //For inputs and outputs
-io_interface io(.clock(myclock),.ps2c(ps2c), .ps2d(ps2d),.outr_outdata(outr_outdata),
-					 .keyboard_input_data(keyboard_input_data),.input_arrived_flag(input_arrived_flag), 
+io_interface io(.clock(myclock), .mhz25_clock(mhz25_clock), .ps2c(ps2c), .ps2d(ps2d),
+					 .outr_outdata(outr_outdata), .io_clr(io_clr),
+					 .keyboard_input_data(keyboard_input_data), 
+					 .input_arrived_flag(input_arrived_flag), .output_went_flag(output_went_flag), 
 					 .vsynch(vsynch), .hsynch(hsynch), .rgb(rgb));
-	 
-// In parantheses is what goes out, out parentheses is the in-module name.
-memory mem(.adress(ar_outdata), .clk(myclock), .read(mem_read), .write(mem_write), .indata(bus_data), .outdata(mem_outdata));//!!!!A difference with Enes 
+					 
+// WARNING: Below, there is the definition of our RAM. But this module is different than others. It is generated
+// by CoreGen operator of ISE. The reason is that ordinary memory modules use distributed RAM, which is about 
+// 35 kilobits and it does not suppost a 64 kilobits memory (4k x 16). Therefore, I had to use Block RAM by 
+// using CoreGen. The below module cannot be changed by writing in it (writing in is not allowed),
+// it can only be changed by using CoreGen.
 
-// I use bus data for indata. It should be changed for input register since it takes from outside. Will deal
-//with this later. As name suggests, these are 8-bit registers. Note that some inputs are never used, like increment
+//	For the same reason, this module is not among the other Github files because it cannot be uploaded. The 
+//	memory in Github is a classical distributed RAM module. It works perfectly, the only thing is that it
+//	had to be downsized because of physical limitations of Basys 2 Spartan 3-E.	
+// In parantheses is what goes out, out parentheses is the in-module name.
+blockmem mem(.addra(ar_outdata), .clka(myclock), .wea(wea2), .rsta(mem_clr),
+						 .dina(bus_data), .douta(mem_outdata));
+assign wea2 = mem_write & ~mem_read;	//If that's 1 write in RAM, if 0 read from RAM. 
+
+						 
+						 
+						 
+// I use bus data for indata.  As name suggests, these are 8-bit registers. Note that some inputs are never used, like increment
 //but I kept them to have a general register framework.
    
-input_register inpr(.clk(myclock), .keyboard_input(keyboard_input), .input_arrived_flag(input_arrived_flag),
+input_register inpr(.keyboard_input(keyboard_input), .input_arrived_flag(input_arrived_flag), .reset(inpr_clr),
 							.input_data(input_data));
-eightbitregister outr(.clk(myclock), .load(outr_load), .inc(alwaysfalse), .clr(outr_clr), .out_data(outr_outdata), .in_data(bus_data));
+eightbitregister outr(.clk(myclock), .load(outr_load), .clr(alwaysfalse), .reset(outr_clr),
+							 .out_data(outr_outdata), .in_data(bus_data));
 
 //smallregisters are 12-bit registers.
 smallregister ar(.clk(myclock), .load(ar_load), .inc(ar_inc), .clr(ar_clr), .outdata(ar_outdata), .indata(bus_data));
@@ -99,9 +115,10 @@ register ir(.clk(myclock), .load(ir_load), .inc(ir_inc), .clr(ir_clr), .outdata(
 register ac(.clk(myclock), .load(ac_load), .inc(ac_inc), .clr(ac_clr), .outdata(ac_outdata), .indata(alu_outdata));
 register tr(.clk(myclock), .load(tr_load), .inc(tr_inc), .clr(tr_clr), .outdata(tr_outdata), .indata(bus_data));
 
-//ALU unit takes inputs from DataRegister, Accumulator, InputRegister (not bus) and sends data only to Accumulator.
+//ALU unit takes inputs from E-flipflop, DataRegister, Accumulator, InputRegister (not bus) and sends data only 
+//to Accumulator and flip-flop E.
 alu_unit alu(.ac_outdata(ac_outdata),.dr_outdata(dr_outdata),.inpr_outdata(inpr_outdata),.alu_code(alu_code),
-				.e_outdata(e_outdata),.ff_en(ff_en),.e_indata(e_indata),.alu_outdata(alu_outdata));
+				.e_outdata(e_outdata),.ff_en(ff_een),.e_indata(e_indata),.alu_outdata(alu_outdata));
 
 //To keep track of time.
 sequencecounter seqcount(.clk(myclock),.clr(seq_clr),.inc(seq_inc),.sequence(sequence));
@@ -114,15 +131,15 @@ buschooser bus_chooser(.bus_code(bus_code),.ar_outdata(ar_outdata),.pc_outdata(p
 //Below are the necessary Flip Flops. E, FGI&FGO (Input-output clocks), IEN (interrupt enable)
 //r input/output interrupt.
 // Probably a few more FFs will come here in the future (for interrupt, ready, busy signals).
-ff e(.clk(myclock), .ff_indata(e_indata),.reset(reset),.ff_clr(e_clr),.ff_en(ff_een),.ff_outdata(e_outdata), .ff_outdata_bar(e_outdata_bar));
-ff fgi(.clk(myclock), .ff_indata(~control_fgi_indata & input_arrived_flag),.reset(reset),.ff_clr(fgi_clr),.ff_en(alwaystrue),.ff_outdata(fgi_outdata), .ff_outdata_bar(fgi_outdata_bar));
-ff fgo(.clk(myclock), .ff_indata(~control_fgo_indata & output_went_flag),.reset(reset),.ff_clr(fgo_clr),.ff_en(alwaystrue),.ff_outdata(fgo_outdata), .ff_outdata_bar(fgo_outdata_bar));
-ff ien(.clk(myclock), .ff_indata(ien_indata),.reset(reset),.ff_clr(ien_clr),.ff_en(alwaystrue),.ff_outdata(ien_outdata), .ff_outdata_bar(ien_outdata_bar));
-ff r(.clk(myclock), .ff_indata(r_indata),.reset(reset),.ff_clr(r_clr),.ff_en(alwaystrue),.ff_outdata(r_outdata), .ff_outdata_bar(r_outdata_bar));
+ff e(.clk(myclock), .ff_indata(e_indata),.reset(e_reset),.ff_clr(e_clr),.ff_en(ff_een),.ff_outdata(e_outdata), .ff_outdata_bar(e_outdata_bar));
+ff fgi(.clk(myclock), .ff_indata(~control_fgi_indata & input_arrived_flag),.reset(alwaysfalse),.ff_clr(fgi_clr),.ff_en(alwaystrue),.ff_outdata(fgi_outdata), .ff_outdata_bar(fgi_outdata_bar));
+ff fgo(.clk(myclock), .ff_indata(~control_fgo_indata & output_went_flag),.reset(alwaysfalse),.ff_clr(fgo_clr),.ff_en(alwaystrue),.ff_outdata(fgo_outdata), .ff_outdata_bar(fgo_outdata_bar));
+ff ien(.clk(myclock), .ff_indata(ien_indata),.reset(alwaysfalse),.ff_clr(ien_clr),.ff_en(alwaystrue),.ff_outdata(ien_outdata), .ff_outdata_bar(ien_outdata_bar));
+ff r(.clk(myclock), .ff_indata(r_indata),.reset(alwaysfalse),.ff_clr(r_clr),.ff_en(alwaystrue),.ff_outdata(r_outdata), .ff_outdata_bar(r_outdata_bar));
 
 assign r_indata = ((sequence[3] || sequence[2] || (sequence[1] && sequence[0]))==1) ? 
 						(ien_outdata & (fgo_outdata || fgi_outdata)) : 1'b0; 				
-// The interrupt flag, r is assigned 1 if al three conditions are satisfied: 1)We are not in T0,T1 or T2. 
+// The interrupt flag: r is assigned 1 if al three conditions are satisfied: 1)We are not in T0,T1 or T2. 
 // 2) Interrupt is enabled. 3) One of the output or input flags are up. Above assignment assures this.
 
 	
@@ -132,23 +149,26 @@ fourbitdecoder seq_code(.code(sequence), .times(times));
 // they are exactly necessary, but created them since they are in our lecture notes.
 	
 control controller(.ir_outdata(ir_outdata),.opcode(instruction),.times(times),
-						.reset(reset),.interrupt(interrupt),.start(start),.clk(myclock),
+						.reset(reset),.start(start),.clk(myclock),
 						.dr_outdata(dr_outdata), .ac_outdata(ac_outdata),
 						.e_outdata(e_outdata),.r_outdata(r_outdata),
 						.bus_code(bus_code), 
-						.mem_write(mem_write),.mem_read(mem_read),
+						.mem_write(mem_write),.mem_read(mem_read), .mem_clr(mem_clr),
 						.ar_load(ar_load), .ar_inc(ar_inc),.ar_clr(ar_clr),
 						.pc_load(pc_load), .pc_inc(pc_inc),.pc_clr(pc_clr),
 						.dr_load(dr_load), .dr_inc(dr_inc),.dr_clr(dr_clr),
 						.ac_load(ac_load), .ac_inc(ac_inc),.ac_clr(ac_clr),
 						.ir_load(ir_load),.ir_inc(ir_inc),.ir_clr(ir_clr),
 						.tr_load(tr_load), .tr_inc(tr_inc),.tr_clr(tr_clr),
-						.outr_load(outr_load),
+						.outr_load(outr_load), .outr_clr(outr_clr),
+						.inpr_clr(inpr_clr),		//Not in lecture notes, but added for synchronous resets.
 						.seq_clr(seq_clr),.seq_inc(seq_inc),
 						.fgi_outdata(fgi_outdata),.control_fgi_indata(control_fgi_indata),
 						.fgo_outdata(fgo_outdata),.control_fgo_indata(control_fgo_indata),
 						.ien_outdata(ien_outdata),.ien_indata(ien_indata),
-						.e_clr(e_clr), .r_clr(r_clr),
+						.e_reset(e_reset), .r_clr(r_clr), 
+						.fgi_clr(fgi_clr), .fgo_clr(fgo_clr), .ien_clr(ien_clr),
+						.io_clr(io_clr),
 						.alu_code(alu_code)
 						);
  

@@ -18,11 +18,11 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module eightbitregister(
+ module eightbitregister(
     input clk,
     input load,
-    input inc,
     input clr,
+	 input reset,
     output [7:0] out_data,
     input [15:0] in_data
     );
@@ -36,11 +36,10 @@ assign alwaystrue=1'b1;
 assign alwaysfalse=1'b0;
 
 
-ff outputregisterdata [7:0] (clk, in_data[7:0], alwaysfalse, alwaysfalse, load, out_data, out_databar);	
+ff outputregisterdata [7:0] (clk, in_data[7:0], alwaysfalse, reset, load, out_data, out_databar);	
 //8 flip flops
 //Here, this lining of input outputs should be correct otherwise there will be errors!
 
-	 
 /*	 
 reg [7:0] datasaved;
 

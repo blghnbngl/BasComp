@@ -36,6 +36,7 @@ wire [15:0] sxtnbitsum;
 wire sxtnbitcarry_out;
 wire alwaystrue, alwaysfalse;
 
+
 assign alwaystrue = 1'b1;
 assign alwaysfalse = 1'b0;
 

@@ -28,6 +28,8 @@ genvar j;
 wire [11:0] CLOCK, FF_INDATA, FF_CLR, RESET, FF_EN, FF_OUTDATA, FF_OUTDATA_BAR;
 wire [11:0] outdatabars, incrementalindata, temporary1;
 
+
+
 //Here, this lining of input outputs should be correct otherwise there will be errors!
 generate
 	for (i=0;i<12;i=i+1)
@@ -38,6 +40,7 @@ generate
 			assign FF_CLR[i]=clr;
 		end
 endgenerate
+
 
 assign FF_INDATA[0] =  ((load & indata[0] & ~inc) | ( (~load) & (~inc) & FF_OUTDATA[0]) | 
 								( (~load) & inc & (~FF_OUTDATA[0])) );
@@ -70,6 +73,8 @@ generate
 endgenerate	
 
 ff datasaved [11:0]  (CLOCK, FF_INDATA, FF_CLR, RESET, FF_EN, FF_OUTDATA, FF_OUTDATA_BAR);
+
+
 
 /*
 reg [11:0] datasaved;
