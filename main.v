@@ -90,9 +90,14 @@ io_interface io(.clock(myclock), .mhz25_clock(mhz25_clock), .ps2c(ps2c), .ps2d(p
 //	memory in Github is a classical distributed RAM module. It works perfectly, the only thing is that it
 //	had to be downsized because of physical limitations of Basys 2 Spartan 3-E.	
 // In parantheses is what goes out, out parentheses is the in-module name.
+/*
 blockmem mem(.addra(ar_outdata), .clka(myclock), .wea(wea2), .rsta(mem_clr),
 						 .dina(bus_data), .douta(mem_outdata));
-assign wea2 = mem_write & ~mem_read;	//If that's 1 write in RAM, if 0 read from RAM. 
+assign wea2 = mem_write & ~mem_read;	//If that's 1 write in RAM, if 0 read from RAM. */
+
+
+memory memo(.adress(ar_outdata), .write(mem_write && ~mem_read), .indata(bus_data), .clk(myclock),
+				.outdata(mem_outdata));
 
 						 
 						 

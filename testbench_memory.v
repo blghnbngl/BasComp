@@ -53,9 +53,8 @@ module testbench_memory;
 
 	// Instantiate the Unit Under Test (UUT)
 	memory uut (
-		.adress(adress), 
-		.read(read), 
-		.write(write), 
+		.adress(adress),  
+		.write(write && ~read ), 
 		.indata(indata),
 		.clk(clk),	
 		.outdata(outdata)
