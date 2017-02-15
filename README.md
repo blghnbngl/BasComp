@@ -15,6 +15,8 @@ Basic Computer Semi Behavioral Description
 
 -A chart of this Basic Computer can make it easier for you to understand how the above modules are put together. Please note that flip flops are defined in the ff module (which is done by dataflow modelling). flipflop_dataflow module is not used now, but I left it among other modules as some sort of legacy from my earlier work. But both modules are the same actually.
 
+-To be able to understand the chart below, read the README file in raw form.
+
 -board                                                                                                 
   | 
   |--main
