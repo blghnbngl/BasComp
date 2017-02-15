@@ -16,7 +16,7 @@
 //
 //	Some inputs are same for all ffs. They get the same clock and same clear command. They are always enabled
 // (so the counter never stops), and the reset is set to 0 for all of them (resetting is done by clear 
-// command). It is the indata they get that makes it a counter.
+// command in control module). It is the indata they get that makes it a counter.
 //
 // WARNING: This counter increments at every NEGATIVE edge of the clock. But this can be changed easily if
 // needed.

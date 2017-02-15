@@ -15,8 +15,23 @@
 //
 // Revision: 
 // Revision 0.01 - File Created
-// Additional Comments: 
+// Additional Comments: An ALU unit with 8 possible operations. 3 are related to Data register, rest are not.
 //
+//	Operations related to Data Register are (with their codes):
+//	0001: DR & AC -> AC
+//	0010: DR + AC -> AC
+//	0011: DR -> AC
+//
+// Other operations:
+//	1000: Complement AC
+//	1001: Complement E	(this could also be done directly via control, but I chose it to do via ALU)
+//	1011: Circular right shift
+//	1100: Circular left shift
+//	1101: IR -> AC
+//
+//	Where DR is Data Register, AC is accumulator, IR is input register and E is carry register of ALU.
+//	Accumulator can only be reached via ALU, it is not connected to bus. 
+// 
 //////////////////////////////////////////////////////////////////////////////////
 module alu_unit(
     input [15:0] ac_outdata,
@@ -45,25 +60,25 @@ sixteenbitadder sxtnbitadder(.sixteenbitinput1(ac_outdata), .sixteenbitinput2(dr
 									
 
 									
-assign ff_en = (alu_code==4'b0010) ? 1'b1:
+assign ff_en = (alu_code==4'b0010) ? 1'b1:			//Enables changes in register E
 					(alu_code==4'b1010) ? 1'b1:
 					(alu_code==4'b1011) ? 1'b1:
 					(alu_code==4'b1100) ? 1'b1: 
 					/*Default*/				 1'b0;
 
-assign e_indata = (alu_code==4'b0010) ? sxtnbitcarry_out:
+assign e_indata = (alu_code==4'b0010) ? sxtnbitcarry_out:	//Changes to register E
 						(alu_code==4'b1010) ? ~e_outdata:
 						(alu_code==4'b1011) ? ac_outdata[0]:
 						(alu_code==4'b1100) ? ac_outdata[15]: 
 						/*Default */		  	 1'bx;
 
-assign alu_outdata[15] = ( alu_code==4'b0001) ? (ac_outdata[15] & dr_outdata[15]): 
-								(( alu_code==4'b0010) ? sxtnbitsum[15] :
+assign alu_outdata[15] = ( alu_code==4'b0001) ? (ac_outdata[15] & dr_outdata[15]):
+								(( alu_code==4'b0010) ? sxtnbitsum[15] :	//This needs special attention because of shifts
 								(( alu_code==4'b0011) ? dr_outdata[15] :
 								(( alu_code==4'b1001) ? ~ac_outdata[15] :
 								(( alu_code==4'b1011) ? e_outdata:
 								(( alu_code==4'b1100) ? ac_outdata[14]:
-								(( alu_code==4'b1101) ? ac_outdata[15] : 16'bxxxxxxxxxxxxxxxx))))));
+								(( alu_code==4'b1101) ? 1'b0 : 1'bx))))));
 				
 generate				
 	for (i=14; i>7;i=i-1)
@@ -74,7 +89,7 @@ generate
 									(( alu_code==4'b1001) ? ~ac_outdata[i] :
 									(( alu_code==4'b1011) ? ac_outdata[i+1]:
 									(( alu_code==4'b1100) ? ac_outdata[i-1]:
-									(( alu_code==4'b1101) ? ac_outdata[i] : 16'bxxxxxxxxxxxxxxxx))))));								
+									(( alu_code==4'b1101) ? 1'b0 : 7'bxxxxxxx))))));								
 		end
 endgenerate
 	
@@ -87,17 +102,17 @@ generate
 									(( alu_code==4'b1001) ? ~ac_outdata[j] :
 									(( alu_code==4'b1011) ? ac_outdata[j+1]:
 									(( alu_code==4'b1100) ? ac_outdata[j-1]:
-									(( alu_code==4'b1101) ? inpr_outdata[j] : 16'bxxxxxxxxxxxxxxxx))))));								
+									(( alu_code==4'b1101) ? inpr_outdata[j] : 7'bxxxxxxx))))));								
 		end
 endgenerate
 
 assign alu_outdata[0] = ( alu_code==4'b0001) ? (ac_outdata[0] & dr_outdata[0]): 
-								(( alu_code==4'b0010) ? sxtnbitsum[0] :
+								(( alu_code==4'b0010) ? sxtnbitsum[0] :	//This needs special attention because of shifts
 								(( alu_code==4'b0011) ? dr_outdata[0] :
 								(( alu_code==4'b1001) ? ~ac_outdata[0] :
 								(( alu_code==4'b1011) ? ac_outdata[1]:
 								(( alu_code==4'b1100) ? e_outdata:
-								(( alu_code==4'b1101) ? inpr_outdata[0] : 16'bxxxxxxxxxxxxxxxx))))));
+								(( alu_code==4'b1101) ? inpr_outdata[0] : 1'bx))))));
 
 /*
 	initial

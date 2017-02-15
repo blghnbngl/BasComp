@@ -6,12 +6,14 @@
 // Additional Comments: 
 //
 //	Parts of element 14 website and Pong P. Chu's book were helpful for developing this module. 
-// Because of properties of VGA, this one must take a in clock with 25 Mhz frequency. It also takes data 
-// from output register. In return, it sends out a output went flag and 3 signals to VGA device. These 
-// signals are vsynch for vertical synchronization, hsynch for horizontal synchronization and an 8-bit
-// color value rgb. First three bits are red, later three are green and final three bits are blue values.
+// Because of properties of VGA, this module must take a in clock with 25 Mhz frequency. Basys 2 Spartan 3-E's
+//	internal clock (myclock that is used in main module) has 100 Mhz frequency so it is slowed in board module
+// and two clocks (100 Mhz and 25 Mhz) are sent as separate inputs. It also takes data from output register. 
+// In return, it sends out a output went flag to control module and 3 signals to VGA device. 
+// These signals are vsynch for vertical synchronization, hsynch for horizontal synchronization and an 
+// 8-bit color value rgb. First three bits are red, later three are green and final two bits are blue values.
 //
-//	Input data that comes from output register is used to create a different color on VGA for each different
+//	The data that comes from output register is used to create a different color on VGA for each different
 //	input. The same color paints all the screen for each output register data.Using digital inputs for just 
 //	to create a different color is not very meaningful, but the main purpose of this module is to complete
 // a basic computer in the quickest way not to create a great output.

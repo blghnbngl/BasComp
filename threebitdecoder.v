@@ -6,21 +6,21 @@
 //
 // Revision: 
 // Revision 0.01 - File Created
-// Additional Comments: 
+// Additional Comments: This one is a helper module to control. It decodes an instruction of 3 bits
 //
 //////////////////////////////////////////////////////////////////////////////////
 module threebitdecoder(
-    input [2:0] opcode,
-    output[7:0] instruction
+    input [2:0] instruction,
+    output[7:0] opcode
     );
 
-assign instruction[7]=(opcode[2] & opcode[1] & opcode[0]);
-assign instruction[6]=(opcode[2] & opcode[1] & ~opcode[0]);
-assign instruction[5]=(opcode[2] & ~opcode[1] & opcode[0]);
-assign instruction[4]=(opcode[2] & ~opcode[1] & ~opcode[0]);
-assign instruction[3]=(~opcode[2] & opcode[1] & opcode[0]);
-assign instruction[2]=(~opcode[2] & opcode[1] & ~opcode[0]);
-assign instruction[1]=(~opcode[2] & ~opcode[1] & opcode[0]);
-assign instruction[0]=(~opcode[2] & ~opcode[1] & ~opcode[0]);
+assign opcode[7]=(instruction[2] & instruction[1] & instruction[0]);
+assign opcode[6]=(instruction[2] & instruction[1] & ~instruction[0]);
+assign opcode[5]=(instruction[2] & ~instruction[1] & instruction[0]);
+assign opcode[4]=(instruction[2] & ~instruction[1] & ~instruction[0]);
+assign opcode[3]=(~instruction[2] & instruction[1] & instruction[0]);
+assign opcode[2]=(~instruction[2] & instruction[1] & ~instruction[0]);
+assign opcode[1]=(~instruction[2] & ~instruction[1] & instruction[0]);
+assign opcode[0]=(~instruction[2] & ~instruction[1] & ~instruction[0]);
 
 endmodule

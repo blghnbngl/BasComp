@@ -8,7 +8,14 @@
 // Module Name:    control 
 // Revision: 
 // Revision 0.01 - File Created
-// Additional Comments: 
+// Additional Comments: The longest and most difficult module of all, the control module. This is the
+//	brain of Basic Computer.
+//
+//	Be aware that in this part there are many parts that are taken into comments. One reason is that behavioral
+// modeling in Verilog can get quite confusing in large modules. Another reason is, since this is the most 
+//	complex part of the Basic Computer I tried different approaches and then I decided to dump some of them. 
+//	But to be prepared if I ever changed my mind and wanted to use some of these approaches, I took these parts 
+//	into comments rather than erasing them. 
 //
 //////////////////////////////////////////////////////////////////////////////////
 module control(
@@ -66,9 +73,9 @@ module control(
     );
 	 
 	
-reg indirect;
-integer opcode_errorchecker;
-integer registerreference_errorchecker;
+reg indirect;						// To indicate indirect memory operations
+integer opcode_errorchecker;	// To see if there is an error in operation code
+integer registerreference_errorchecker;	//To see if there is an error in register reference command
 
 
 /*
@@ -138,7 +145,7 @@ always @(posedge clk)
 				control_fgo_indata<=0;
 				ien_indata<=0;
 				halted<=0;
-				mem_clr<=1;					
+				mem_clr<=1;						//Actually, this does nothing and can be taken away.						
 				inpr_clr<=1;
 				outr_clr<=1;
 				ar_clr<=1;
@@ -157,12 +164,12 @@ always @(posedge clk)
 				io_clr<=1;
 				r_clr<=1;
 			end
-		else if (times<=9)
-			begin
+		else if (times<=7)						//This means we are in the first 4 clock cycle
+			begin										//Common parts for all operations
 				case(times[3:0])
-					4'b0001:
+					4'b0001:							//Fetch part
 						begin
-							mem_clr<=0; 			//The part below, until the if condition is to clear
+						/*	mem_clr<=0; 			//The part below, until the if condition is to clear
 							inpr_clr<=0;			//the effects of any possible prior reset operation.
 							outr_clr<=0;
 							ar_clr<=0;
@@ -176,8 +183,8 @@ always @(posedge clk)
 							fgi_clr<=0;
 							fgo_clr<=0;
 							ien_clr<=0;
-							r_clr<=0;
-							if (r_outdata != 1)
+							r_clr<=0;*/
+							if (r_outdata != 1)	//R'T0 in our lecture notes
 								begin
 									pc_load<=0;
 									dr_load<=0;
@@ -196,9 +203,9 @@ always @(posedge clk)
 									ar_load<=1;
 									seq_inc<=1;
 								end
-							else
-								begin
-									pc_load<=0;
+							else						//RT0 in our lecture notes
+								begin					//This R means system is interrupted by I/O system and it is
+									pc_load<=0;		//assigned in the main module.
 									dr_load<=0;
 									ac_load<=0;
 									ir_load<=0;
@@ -219,7 +226,7 @@ always @(posedge clk)
 						end  
 					4'b0010:
 						begin
-							if (r_outdata != 1)
+							if (r_outdata != 1)			//R'T1
 								begin
 									ar_load<=0;
 									mem_read<=1;
@@ -228,7 +235,7 @@ always @(posedge clk)
 									pc_inc<=1;
 									seq_inc<=1;
 								end
-							else
+							else								//RT1
 								begin
 									tr_load<=0;
 									ar_clr<=0;
@@ -241,10 +248,9 @@ always @(posedge clk)
 						end
 					4'b0100:
 						begin
-							if (r_outdata != 1)
+							if (r_outdata != 1)		//R'T2
 								begin
-									// I GUESS (or hope) the decoding is done in the main module,
-									// so there is no need to write here
+									// Decoding of opcodes is done in the threebitdecoder module.
 									mem_read<=0;
 									ir_load<=0;
 									pc_inc<=0;
@@ -258,7 +264,7 @@ always @(posedge clk)
 									+3*ir_outdata[3]	+2*ir_outdata[2]+1*ir_outdata[1]+0*ir_outdata[0];
 									seq_inc<=1;
 								end
-							else
+							else								//RT2
 								begin
 									bus_code<=3'b000;
 									mem_write<=0;
@@ -270,23 +276,66 @@ always @(posedge clk)
 									seq_clr<=1;
 								end
 						end
-					default:
+					4'b0000:								//The very beginning where sequence count is 0.
+						begin								//All outputs are 0, except incrementing the clock.
+							seq_inc<=1;
+							bus_code<=0;
+							ar_load<=0;
+							ar_inc<=0;
+							ar_clr<=0;
+							pc_load<=0;
+							pc_inc<=0;
+							pc_clr<=0;
+							dr_load<=0;
+							dr_inc<=0;
+							dr_clr<=0;
+							ac_load<=0;
+							ac_inc<=0;
+							ac_clr<=0;
+							ir_load<=0;
+							ir_inc<=0;
+							ir_clr<=0;
+							tr_load<=0;
+							tr_inc<=0;
+							tr_clr<=0;
+							mem_write<=0;
+							mem_read<=0;			
+							mem_clr<=0;
+							e_reset<=0;
+							outr_load<=0;
+							alu_code<=0;
+							seq_clr<=0;
+							control_fgi_indata<=0;
+							control_fgo_indata<=0;
+							ien_indata<=0;
+							inpr_clr<=0;
+							outr_clr<=0;
+							fgi_clr<=0;
+							fgo_clr<=0;
+							ien_clr<=0;
+							r_clr<=0;
+							io_clr<=0;
+						end
+					default:						//If there is a timing in error, start again
 						begin
 							seq_clr<=1;
 						end
 				endcase	
 			end
-		else 
-			begin 
+		else 										//Now we have past the first 3 clock cycles
+			begin 								//Here, operations differ
 				if (opcode_errorchecker!=1)
-					$display("Error in decoding opcode, in control unit");
+					$display("Error in decoding operation code, in control unit");
 				else if (opcode[0]==1)			//And operation of Accumulator and Memory data
 					begin
 						case(times)
-							16'b0000000000001000:
+							16'b0000000000001000:	//D0T3
 								begin 
 									if (indirect==1)
 										begin
+											//ar_load<=0;				
+											//seq_inc<=1;
+											
 											bus_code<=3'b111;
 											mem_read<=1;
 											ar_load<=1;
@@ -299,15 +348,15 @@ always @(posedge clk)
 											seq_inc<=1;
 										end
 								end
-							16'b0000000000010000:
+							16'b0000000000010000:		//D0T4
 								begin
-									ar_load<=0;
+									ar_load<=0;				
 									bus_code<=3'b111;
 									mem_read<=1;
 									dr_load<=1;
 									seq_inc<=1;
 								end
-							16'b0000000000100000:
+							16'b0000000000100000:		//D0T5
 								begin
 									dr_load<=0;
 									bus_code<=3'b000;
@@ -317,20 +366,22 @@ always @(posedge clk)
 									seq_inc<=0;
 									seq_clr<=1;
 								end
-							default:
-								begin
+							default:							//A security measure in case that somehow we go to a higher
+								begin							//clock cycle count
 									seq_clr<=1;
+									seq_inc<=0;
+									ac_load<=0;
 								end
 						endcase
 					end
 				else if(opcode[1]==1)	//Sum operation of Accumulator and Memory data
 					begin
 						case (times)
-							16'b0000000000001000:
+							16'b0000000000001000:				//D1T3
 								begin 
 									if (indirect==1)
 										begin
-											bus_code<=3'b111;
+											bus_code<=3'b111;		
 											mem_read<=1;
 											ar_load<=1;
 											seq_inc<=1;
@@ -342,7 +393,7 @@ always @(posedge clk)
 											seq_inc<=1;	
 										end
 								end
-							16'b0000000000010000:
+							16'b0000000000010000:			//D1T4
 								begin
 									ar_load<=0;
 									bus_code<=3'b111;
@@ -362,6 +413,8 @@ always @(posedge clk)
 								end
 							default:
 								begin
+									seq_inc<=0;
+									ac_load<=0;
 									seq_clr<=1;
 								end
 						endcase
@@ -369,7 +422,7 @@ always @(posedge clk)
 				else if (opcode[2]==1)	//Load memory data to AC
 					begin
 						case (times)
-							16'b0000000000001000:
+							16'b0000000000001000:		//D2T3
 								begin 
 									if (indirect==1)
 										begin
@@ -385,7 +438,7 @@ always @(posedge clk)
 										seq_inc<=1;
 										end
 								end
-							16'b0000000000010000:
+							16'b0000000000010000:		//D2T4
 								begin
 									ar_load<=0;
 									bus_code<=3'b111;
@@ -393,7 +446,7 @@ always @(posedge clk)
 									dr_load<=1;
 									seq_inc<=1;	
 								end
-							16'b0000000000100000:
+							16'b0000000000100000:		//D2T5
 								begin
 									dr_load<=0;
 									mem_read<=0;
@@ -405,6 +458,8 @@ always @(posedge clk)
 								end
 							default:
 								begin
+									seq_inc<=0;
+									 
 									seq_clr<=1;
 								end
 						endcase
@@ -412,7 +467,7 @@ always @(posedge clk)
 				else if (opcode[3]==1)	//Store AC to memory
 					begin
 						case(times)
-							16'b0000000000001000:
+							16'b0000000000001000:		//D3T3
 								begin 
 									if (indirect==1)
 										begin
@@ -428,7 +483,7 @@ always @(posedge clk)
 											seq_inc<=1;	
 										end	
 								end
-							16'b0000000000010000:
+							16'b0000000000010000:		//D3T4
 								begin
 									ar_load<=0;
 									mem_read<=0;
@@ -439,6 +494,7 @@ always @(posedge clk)
 								end
 							default:
 								begin
+									mem_write<=0;
 									seq_clr<=1;
 								end
 						endcase
@@ -446,7 +502,7 @@ always @(posedge clk)
 				else if (opcode[4]==1)	//Branch unconditionally
 					begin
 						case(times)
-							16'b0000000000001000:
+							16'b0000000000001000:		//D4T3
 								begin 
 									if (indirect==1)
 										begin
@@ -462,7 +518,7 @@ always @(posedge clk)
 											seq_inc<=1;	
 										end	
 								end
-							16'b0000000000010000:
+							16'b0000000000010000:		//D4T4
 								begin
 									ar_load<=0;
 									mem_read<=0;
@@ -473,14 +529,16 @@ always @(posedge clk)
 								end
 							default:
 								begin
+									seq_inc<=0;
+									pc_load<=0;
 									seq_clr<=1;
 								end
 						endcase
 					end
 				else if (opcode[5]==1)		//Branch to subroutine
 					begin
-						case (times)
-							16'b0000000000001000:
+						case (times)		
+							16'b0000000000001000:				//D5T3
 								begin 
 									if (indirect==1)
 										begin
@@ -496,7 +554,7 @@ always @(posedge clk)
 											seq_inc<=1;	
 										end
 								end
-							16'b0000000000010000:
+							16'b0000000000010000:			//D5T4
 								begin
 									ar_load<=0;
 									mem_read<=0;
@@ -505,7 +563,7 @@ always @(posedge clk)
 									ar_inc<=1;
 									seq_inc<=1;
 								end
-							16'b0000000000100000:
+							16'b0000000000100000:			//D5T5
 								begin
 									mem_write<=0;
 									ar_inc<=0;
@@ -516,6 +574,7 @@ always @(posedge clk)
 								end
 							default:
 								begin
+									pc_load<=0;
 									seq_clr<=1;
 								end
 						endcase
@@ -523,7 +582,7 @@ always @(posedge clk)
 				else if (opcode[6]==1)	// Increment and skip if zero
 					begin
 						case(times)
-							16'b0000000000001000:
+							16'b0000000000001000:		//D6T3
 								begin 
 									if (indirect==1)
 										begin
@@ -539,7 +598,7 @@ always @(posedge clk)
 											seq_inc<=1;	
 										end	
 								end
-							16'b0000000000010000:
+							16'b0000000000010000:		//D6T4
 								begin
 									ar_load<=0;
 									bus_code<=3'b111;
@@ -547,7 +606,7 @@ always @(posedge clk)
 									dr_load<=1;
 									seq_inc<=1;	
 								end
-							16'b0000000000100000:
+							16'b0000000000100000:		//D6T5
 								begin
 									dr_load<=0;
 									mem_read<=0;
@@ -555,7 +614,7 @@ always @(posedge clk)
 									dr_inc<=1;
 									seq_inc<=1;
 								end
-							16'b0000000001000000:
+							16'b0000000001000000:		//D6T6
 								begin
 									dr_inc<=0;
 									bus_code<=3'b011;
@@ -571,6 +630,8 @@ always @(posedge clk)
 								end
 							default:
 								begin
+									mem_write<=0;
+									pc_inc<=0;
 									seq_clr<=1;
 								end
 						endcase
@@ -731,7 +792,7 @@ always @(posedge clk)
 														seq_inc<=0;
 														alu_code<=4'b1101;
 														ac_load<=1;	
-														control_fgi_indata<=1;
+														control_fgi_indata<=1;		//I make interrupt impossible since input register is empty.
 														seq_clr<=1;
 													end
 												else if (ir_outdata[10]==1 && registerreference_errorchecker==10)	//Output character from AC
@@ -740,7 +801,7 @@ always @(posedge clk)
 														seq_inc<=0;
 														bus_code<=3'b100;
 														outr_load<=1;
-														control_fgo_indata<=1;
+														control_fgo_indata<=1;		//I make interrupt impossible since output register is not sent yet.
 														seq_clr<=1;											
 													end
 												else if (ir_outdata[9]==1 && registerreference_errorchecker==9)	//Skip on input flag.

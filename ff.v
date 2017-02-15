@@ -52,7 +52,7 @@ wire d_refined;
 
 assign d_refined = (ff_outdata & (~ff_en) & (~reset)) | (ff_indata & ff_en & (~ff_clr) & (~reset));
 
-
+//Flip flop structure with latches
 	
 	d_latch master( .d(d_refined), .c(~clk), .q(Q1) , .qbar(Q1bar));
 	sr_latch slave( .s(Q1), .r(Q1bar), .c(clk), .q(ff_outdata) , .qbar(ff_outdata_bar));

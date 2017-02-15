@@ -74,11 +74,11 @@ endgenerate
 	
 	
 generate
-	for (i=1;i<16;i=i+1)
+	for (i=1;i<16;i=i+1)			//ASSIGNMENT TO REGISTER IS HERE
 		begin: ff_indata_assignments
-			assign incrementalindata[i] = (FF_OUTDATA[i] ^ temporary1[i-1]);
+			assign incrementalindata[i] = (FF_OUTDATA[i] ^ temporary1[i-1]);	//For increment command
 			assign FF_INDATA[i] =(load & indata[i] & ~inc) | ( (~load) & (~inc) & FF_OUTDATA[i]) | 
-						( (~load) & inc & incrementalindata[i]);		//WHat comes as input in each clock cycle
+						( (~load) & inc & incrementalindata[i]);		//What comes as input in each clock cycle
 	end		
 endgenerate
 

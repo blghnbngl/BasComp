@@ -9,22 +9,22 @@
 // Revision 0.01 - File Created
 // Additional Comments: 
 //
-//	A very simple PS/2 keyboard interface. Work of an Indian group of students was helpful in plannig this
-// module.
+//	A very simple PS/2 keyboard interface. 
 //
 // It takes two inputs from keyboard, ps2c (clock of keyboard) and ps2d (1 bit data). Due to properties of 
-//	PS/2 keyboards, data are available at the negative edge of keyboard clock. When a key is pressed on, the
-// 8 bit code sent by the keyboard is taken into registers. When all 8 bits are completed, this is sent out.
-// In addition, a flag showing input has arrived is also sent.
+//	PS/2 keyboards, data are available at the negative edge of keyboard clock, also the data is sent bit by bit.
+// When a key is pressed on, the 8 bit code sent by the keyboard is taken into registers, it takes 11 ps2 clock
+// cycles to complete. When all 8 bits are completed, this is sent out. In addition, a flag showing input has 
+//	arrived is also sent.
 //
 //	Key point is between lines 70-83. After every pressed key, an end signal, 8'hf0 is sent. For example if
 // A (which has code 1C) is pressed, what keyboard sents is 1C F0 bit by bit. If A is kept pressed for some
-// time then 1C 1C 1C 1C ..... F0 is sent. My code accepts an input only when it sees F0 code in the end.  
+// time then 1C 1C 1C 1C ..... F0 is sent. My interface accepts an input only when it sees F0 code in the end.  
 //	
 //	When the F0 code is seen, previously stored key code (1C for letter A) is sent as an output, and a flag
 //	telling input has arrived is sent. A side effect of this design is even if a key is held for a long time,
 //	it is sent to input register only once (because the module waits to see the F0 signal), but I think this
-//	is a reasonable cost for a simple and efficient design. 
+//	is a reasonable cost for a simple and efficient design. This module can be developed further if needed.
 //
 //////////////////////////////////////////////////////////////////////////////////
 module keyboard_input_interface(
@@ -52,8 +52,8 @@ initial
 		keyboard_input_data<=8'hf0;
 	end
 	
-always @(negedge ps2c or posedge clr) //Activating at negative edge of clock from keyboard, becuase of properties of 
-	begin					 // PS/2 devices.	Below, the input is stored.
+always @(negedge ps2c or posedge clr)//Activating at negative edge of clock from keyboard, becuase of properties 
+	begin					 // of PS/2 devices.	Below, the input is stored.
 		if (clr==1)
 			begin
 				b<=4'h1;

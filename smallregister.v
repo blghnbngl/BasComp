@@ -8,7 +8,7 @@
 // Revision 0.01 - File Created
 // Additional Comments: 
 //
-//	Expect the size (12 bits) this module is exactly the same with the register module (16 bits). For 
+//	Except the size (12 bits) this module is exactly the same with the register module (16 bits). For 
 //	explanations, please look at the register module.	
 //
 //////////////////////////////////////////////////////////////////////////////////
@@ -31,6 +31,9 @@ wire [11:0] outdatabars, incrementalindata, temporary1;
 
 
 //Here, this lining of input outputs should be correct otherwise there will be errors!
+ff datasaved [11:0]  (CLOCK, FF_INDATA, FF_CLR, RESET, FF_EN, FF_OUTDATA, FF_OUTDATA_BAR);
+
+
 generate
 	for (i=0;i<12;i=i+1)
 		begin: commoninputs
@@ -72,7 +75,6 @@ generate
 		end
 endgenerate	
 
-ff datasaved [11:0]  (CLOCK, FF_INDATA, FF_CLR, RESET, FF_EN, FF_OUTDATA, FF_OUTDATA_BAR);
 
 
 

@@ -15,7 +15,8 @@
 //
 // Revision: 
 // Revision 0.01 - File Created
-// Additional Comments: 
+// Additional Comments: A simple register consisting of 8 flip flops. But input-outputs are a bit tricky
+// since this is either an input or outpur register.
 //
 //////////////////////////////////////////////////////////////////////////////////
 module input_register(

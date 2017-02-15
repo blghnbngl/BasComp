@@ -7,24 +7,32 @@
 // Design Name: 
 // Module Name:    board 
 // Revision 0.01 - File Created
-// Additional Comments: Under this file, we have the main module. This one also sets the relationship with 
-// the physical components of FPGA.
+// Additional Comments: This one is the top module. This helps arranging the relationship between the physical
+// components of FPGA and the Basic Computer (which is the main module here). 
+//		Please note that for input-output on the FPGA to work, a UCF file should be correctly specified. But 
+//	since the final output of this Basic Computer is undecided yet, I leave the UCF file unfinished.
+//		FPGA's internal clock, fpgaclock always works. But the Basic Computer's clock, which is called myclock
+//	and goes into the main module must work only if the Basic Computer is given the start command. This is 
+// assured by a flip-flop named clockworker and the ASM between 116-197. If the system is given the start  
+//	command and not interrupted, halted or reseted then clockworker is one, Basic Computer (and it's clock)
+//	works. If start order is not given or system is interrupted, halted or reseted then clockworker is 0. Then 
+// Basic Computer's clock is always 0 and it does not work.
 //
 //////////////////////////////////////////////////////////////////////////////////
 module board(
-	 input fpgaclock,
-    input start,
-    input interrupt,
-    input reset,
-	 input ps2d,
-	 input ps2c,
-	 output vsynch,
-	 output hsynch,
-	 output [7:0] rgb,
-    output reg ready,
-    output reg busy,
-    output reg interrupted,
-	 output reg halted_condition
+	 input fpgaclock,				//This one is FPGA's internal clock
+    input start,					//A kkey on FPGA
+    input interrupt,				//A key on FPGA
+    input reset,					//A key on FPGA
+	 input ps2d,					//Ps/2 Keyboard data
+	 input ps2c,					//Ps/2 keyboard's clock
+	 output vsynch,				//Output for VGA
+	 output hsynch,				//Output for VGA
+	 output [7:0] rgb,			//Output for VGA
+    output reg ready,			//A sign on FPGA
+    output reg busy,				//A sign of FPGA
+    output reg interrupted,	//A sign on FPGA
+	 output reg halted_condition//A sign on FPGA
     );
 
 parameter S0=0, S1=1, S2=2, S3=3;
@@ -40,7 +48,7 @@ reg myclock;				// That's the clock that goes in the main module
 reg myclock2;				//That's required to synchronize the ASM here and the process in main
 								//myclock2 does not go into the main module.
 
-reg mhz25_clock;	// A slower clock (at rate 25 MHz) is needed for VGA interface
+reg mhz25_clock;	// A slower clock (at rate 25 MHz) is needed for VGA interface. I produce this below
 
 assign alwayfalse=0;
 assign alwaytrue=1;
@@ -59,7 +67,7 @@ main main(.start(start),.reset(reset),.myclock(myclock),.ps2d(ps2d),.ps2c(ps2c),
 
 
 //Here, I slow the clock of FPGA, since it is too fast. Also, FPGA clock has 50 Mhz frequency
-// but I need a 25 Mhz clock for the input output module under main. 
+// but I need a 25 Mhz clock for the input output module under main due to properties of VGA display. 
 initial
 	begin
 		fpgaclock_counter<=0;
@@ -68,10 +76,10 @@ initial
 
 always @ (posedge fpgaclock)
 	begin
-		if (fpgaclock_counter==21'b111111111111111111111)
+		if (fpgaclock_counter==21'b111111111111111111111)		
 			begin
 				fpgaclock_counter<=0;
-				mhz25_clock<=~mhz25_clock;
+				mhz25_clock<=~mhz25_clock;				//This assures mhz25 clock has half the speed of FPGA clock
 			end
 		else
 			begin
@@ -89,14 +97,14 @@ initial
 	end
 	
 always @(fpgaclock_counter[20] or clockworker)	
-	myclock=fpgaclock_counter[20] & clockworker;
+	myclock=fpgaclock_counter[20] & clockworker;			//This one goes into the main
 
 always @(fpgaclock_counter[20])
 	myclock2=fpgaclock_counter[20];
 	
 initial
 	begin
-		ready<=1;
+		ready<=1;					//Initially, ready sign is flashing
 		busy<=0;
 		interrupted<=0;
 		clockworker<=0;
@@ -150,7 +158,7 @@ always @ (posedge myclock2)
 		endcase
 	end
 	
-always@ (state)
+always@ (state)							//THis one shows which signs on FPGA are flashing under which condition.
 	begin
 		case (state)
 			S0:
@@ -161,13 +169,13 @@ always@ (state)
 					clockworker<=0;
 					halted_condition<=0;
 				end
-			S1:
+			S1:			
 				begin
 					ready<=0;
 					busy<=1;
 					interrupted<=0;
-					clockworker<=1;
-					halted_condition<=0;
+					clockworker<=1;			//With clockworker=1, Basic Computer's clock begins to work and 
+					halted_condition<=0;		//Basic Computer starts processing.
 				end
 			S2:
 				begin

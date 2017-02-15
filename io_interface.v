@@ -15,7 +15,26 @@
 //
 // Revision: 
 // Revision 0.01 - File Created
-// Additional Comments: 
+// Additional Comments: This is the final and most complex part of the basic computer. This part deals with
+// what comes in and gets out of Basic Computer. I thought best option for this basic computer is getting 
+// inputs via a ps/2 keyboard and sending outputs to a VGA screen (Basys 2 Spartan 3-E FPGA has the necessary
+//	plugins for both of these).
+//
+//	The two modules below are totally separate. They have only one mutual input, which is io_clr. This input
+// is used to clear both input and output interfaces when a reset command is given. Other than this, the 
+// two interfaces have the following inputs and outputs.
+//
+//	Keyboard interface inputs: io_clr, ps2c, ps2d, keyboard input data
+//	io_clr comes from the control module, the others come from the keyboard
+// Keyboard interface output: Input arrived flag 
+// This output goes to the control module
+//
+//	Vga interface inputs: io_clr, mhz25_clock, output register data
+//
+// Vga interface outputs: vsynch, hsynch, rgb, output went flag
+//	Vsynch, hsynch, rgb go to VGA screen, output went flag goes to the control module.
+//
+//	More detailed descriptions of each interface is in their respective modules.
 //
 //////////////////////////////////////////////////////////////////////////////////
 module io_interface(
